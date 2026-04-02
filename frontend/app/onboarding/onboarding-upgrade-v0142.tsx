@@ -17,7 +17,21 @@ const UpgradeOnboardingModal_v0_14_2_Content = () => {
 
             <div className="flex w-full items-start gap-4 mb-4">
                 <div className="flex-shrink-0">
-                    <i className="text-[24px] text-accent fa-solid fa-bell"></i>
+                    <span
+                        aria-hidden="true"
+                        className="block h-6 w-6"
+                        style={{
+                            backgroundColor: "#fbbf24",
+                            WebkitMaskImage: 'url("/yellow-circle.svg")',
+                            maskImage: 'url("/yellow-circle.svg")',
+                            WebkitMaskRepeat: "no-repeat",
+                            maskRepeat: "no-repeat",
+                            WebkitMaskPosition: "center",
+                            maskPosition: "center",
+                            WebkitMaskSize: "contain",
+                            maskSize: "contain",
+                        }}
+                    />
                 </div>
                 <div className="flex flex-col items-start gap-2 flex-1">
                     <div className="text-foreground text-base font-semibold leading-[18px]">Block &amp; Tab Badges</div>

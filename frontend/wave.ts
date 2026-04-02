@@ -39,6 +39,8 @@ import { createRoot } from "react-dom/client";
 const platform = getApi().getPlatform();
 document.title = `Wave Terminal`;
 let savedInitOpts: WaveInitOpts = null;
+const InitBodyRevealTimeoutMs = 7000;
+const InitConfigTimeoutMs = 4000;
 
 (window as any).WOS = WOS;
 (window as any).globalStore = globalStore;
@@ -54,6 +56,49 @@ function updateZoomFactor(zoomFactor: number) {
     console.log("update zoomfactor", zoomFactor);
     document.documentElement.style.setProperty("--zoomfactor", String(zoomFactor));
     document.documentElement.style.setProperty("--zoomfactor-inv", String(1 / zoomFactor));
+}
+
+function revealInitBody(reason: string) {
+    getApi().sendLog(`[init] revealing body: ${reason}`);
+    document.body.style.visibility = null;
+    document.body.style.opacity = null;
+    document.body.classList.remove("is-transparent");
+}
+
+function logInitStep(step: string) {
+    getApi().sendLog(`[init] ${step}`);
+}
+
+async function withInitTimeout<T>(promise: Promise<T>, label: string, timeoutMs: number): Promise<T | null> {
+    return new Promise((resolve) => {
+        let settled = false;
+        const timeoutId = window.setTimeout(() => {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            getApi().sendLog(`[init] ${label} timed out after ${timeoutMs}ms`);
+            resolve(null);
+        }, timeoutMs);
+        promise
+            .then((value) => {
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                window.clearTimeout(timeoutId);
+                resolve(value);
+            })
+            .catch((error) => {
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                window.clearTimeout(timeoutId);
+                getApi().sendLog(`[init] ${label} failed: ${error?.message ?? error}`);
+                resolve(null);
+            });
+    });
 }
 
 async function initBare() {
@@ -78,6 +123,9 @@ async function initBare() {
 document.addEventListener("DOMContentLoaded", initBare);
 
 async function initWaveWrap(initOpts: WaveInitOpts) {
+    let revealTimeoutId: number | null = window.setTimeout(() => {
+        revealInitBody("wave init timeout safeguard");
+    }, InitBodyRevealTimeoutMs);
     try {
         if (savedInitOpts) {
             await reinitWave();
@@ -89,9 +137,10 @@ async function initWaveWrap(initOpts: WaveInitOpts) {
         getApi().sendLog("Error in initWave " + e.message + "\n" + e.stack);
         console.error("Error in initWave", e);
     } finally {
-        document.body.style.visibility = null;
-        document.body.style.opacity = null;
-        document.body.classList.remove("is-transparent");
+        if (revealTimeoutId != null) {
+            window.clearTimeout(revealTimeoutId);
+        }
+        revealInitBody("wave init finished");
     }
 }
 
@@ -152,7 +201,9 @@ async function initWave(initOpts: WaveInitOpts) {
     };
     console.log("Wave Init", globalInitOpts);
     globalStore.set(activeTabIdAtom, initOpts.tabId);
+    logInitStep("GlobalModel.initialize:start");
     await GlobalModel.getInstance().initialize(globalInitOpts);
+    logInitStep("GlobalModel.initialize:done");
     initGlobal(globalInitOpts);
     (window as any).globalAtoms = atoms;
 
@@ -163,23 +214,35 @@ async function initWave(initOpts: WaveInitOpts) {
 
     // ensures client/window/workspace are loaded into the cache before rendering
     try {
+        logInitStep("loadConnStatus:start");
         await loadConnStatus();
+        logInitStep("loadConnStatus:done");
+        logInitStep("loadBadges:start");
         await loadBadges();
+        logInitStep("loadBadges:done");
         initGlobalWaveEventSubs(initOpts);
+        logInitStep("initGlobalWaveEventSubs:done");
         subscribeToConnEvents();
+        logInitStep("subscribeToConnEvents:done");
         if (isMacOS()) {
+            logInitStep("MacOSVersionCommand:start");
             const macOSVersion = await RpcApi.MacOSVersionCommand(TabRpcClient);
             setMacOSVersion(macOSVersion);
+            logInitStep("MacOSVersionCommand:done");
         }
+        logInitStep("load core wave objects:start");
         const [_client, waveWindow, initialTab] = await Promise.all([
             WOS.loadAndPinWaveObject<Client>(WOS.makeORef("client", initOpts.clientId)),
             WOS.loadAndPinWaveObject<WaveWindow>(WOS.makeORef("window", initOpts.windowId)),
             WOS.loadAndPinWaveObject<Tab>(WOS.makeORef("tab", initOpts.tabId)),
         ]);
+        logInitStep("load core wave objects:done");
+        logInitStep("load workspace/layout:start");
         const [ws, _layoutState] = await Promise.all([
             WOS.loadAndPinWaveObject<Workspace>(WOS.makeORef("workspace", waveWindow.workspaceid)),
             WOS.reloadWaveObject<LayoutState>(WOS.makeORef("layout", initialTab.layoutstate)),
         ]);
+        logInitStep("load workspace/layout:done");
         loadAllWorkspaceTabs(ws);
         WOS.wpsSubscribeToObject(WOS.makeORef("workspace", waveWindow.workspaceid));
         document.title = `Wave Terminal - ${initialTab.name}`; // TODO update with tab name change
@@ -190,13 +253,33 @@ async function initWave(initOpts: WaveInitOpts) {
     registerGlobalKeys();
     registerElectronReinjectKeyHandler();
     registerControlShiftStateUpdateHandler();
+    logInitStep("key handlers:done");
+    logInitStep("loadMonaco:start");
     await loadMonaco();
-    const fullConfig = await RpcApi.GetFullConfigCommand(TabRpcClient);
+    logInitStep("loadMonaco:done");
+    logInitStep("GetFullConfigCommand:start");
+    const fullConfig = await withInitTimeout(
+        RpcApi.GetFullConfigCommand(TabRpcClient),
+        "GetFullConfigCommand",
+        InitConfigTimeoutMs
+    );
     console.log("fullconfig", fullConfig);
-    globalStore.set(atoms.fullConfigAtom, fullConfig);
-    const waveaiModeConfig = await RpcApi.GetWaveAIModeConfigCommand(TabRpcClient);
-    globalStore.set(atoms.waveaiModeConfigAtom, waveaiModeConfig.configs);
+    if (fullConfig != null) {
+        globalStore.set(atoms.fullConfigAtom, fullConfig);
+        logInitStep("GetFullConfigCommand:done");
+    } else {
+        logInitStep("GetFullConfigCommand:fallback-null");
+    }
+    logInitStep("GetWaveAIModeConfigCommand:start");
+    const waveaiModeConfig = await withInitTimeout(
+        RpcApi.GetWaveAIModeConfigCommand(TabRpcClient),
+        "GetWaveAIModeConfigCommand",
+        InitConfigTimeoutMs
+    );
+    globalStore.set(atoms.waveaiModeConfigAtom, waveaiModeConfig?.configs ?? {});
+    logInitStep(waveaiModeConfig != null ? "GetWaveAIModeConfigCommand:done" : "GetWaveAIModeConfigCommand:fallback-empty");
     console.log("Wave First Render");
+    logInitStep("react render:start");
     let firstRenderResolveFn: () => void = null;
     const firstRenderPromise = new Promise<void>((resolve) => {
         firstRenderResolveFn = resolve;
@@ -207,6 +290,7 @@ async function initWave(initOpts: WaveInitOpts) {
     root.render(reactElem);
     await firstRenderPromise;
     console.log("Wave First Render Done");
+    logInitStep("react render:done");
     getApi().setWindowInitStatus("wave-ready");
 }
 

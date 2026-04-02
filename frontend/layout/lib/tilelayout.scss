@@ -50,14 +50,14 @@
             .line {
                 height: 100%;
                 width: calc(50% + 1px);
-                border-right: 2px solid var(--accent-color);
+                border-right: var(--selection-border-width) solid var(--selection-border-color);
             }
         }
         &.flex-column {
             cursor: ns-resize;
             .line {
                 height: calc(50% + 1px);
-                border-bottom: 2px solid var(--accent-color);
+                border-bottom: var(--selection-border-width) solid var(--selection-border-color);
             }
         }
         &:hover .line {
@@ -80,7 +80,7 @@
         }
 
         &.resizing {
-            border: 1px solid var(--accent-color);
+            border: var(--selection-border-width) solid var(--selection-border-color);
             backdrop-filter: blur(8px);
         }
 
@@ -142,7 +142,7 @@
     }
 
     .placeholder {
-        background-color: var(--accent-color);
+        background-color: color-mix(in srgb, var(--selection-border-color) 55%, transparent);
         opacity: 0.5;
         border-radius: calc(var(--block-border-radius) + 2px);
     }

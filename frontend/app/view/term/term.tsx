@@ -300,7 +300,10 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
             {
                 theme: termTheme,
                 fontSize: termFontSize,
-                fontFamily: termSettings?.["term:fontfamily"] ?? connFontFamily ?? "Hack",
+                fontFamily:
+                    termSettings?.["term:fontfamily"] ??
+                    connFontFamily ??
+                    '"DM Mono Nerd Font", "1984 Body", monospace',
                 drawBoldTextInBrightColors: false,
                 fontWeight: "normal",
                 fontWeightBold: "bold",

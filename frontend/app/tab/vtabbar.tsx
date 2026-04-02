@@ -1,7 +1,6 @@
 // Copyright 2026, Command Line Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Tooltip } from "@/app/element/tooltip";
 import { getTabBadgeAtom } from "@/app/store/badge";
 import { getTabModelByTabId } from "@/app/store/tab-model";
 import { makeORef } from "@/app/store/wos";
@@ -18,35 +17,6 @@ import { VTab, VTabItem } from "./vtab";
 import { VTabBarEnv } from "./vtabbarenv";
 import { WorkspaceSwitcher } from "./workspaceswitcher";
 export type { VTabItem } from "./vtab";
-
-const VTabBarAIButton = memo(() => {
-    const env = useWaveEnv<VTabBarEnv>();
-    const aiPanelOpen = useAtomValue(WorkspaceLayoutModel.getInstance().panelVisibleAtom);
-    const hideAiButton = useAtomValue(env.getSettingsKeyAtom("app:hideaibutton"));
-
-    const onClick = () => {
-        const currentVisible = WorkspaceLayoutModel.getInstance().getAIPanelVisible();
-        WorkspaceLayoutModel.getInstance().setAIPanelVisible(!currentVisible);
-    };
-
-    if (hideAiButton) {
-        return null;
-    }
-
-    return (
-        <Tooltip
-            content="Toggle Wave AI Panel"
-            placement="bottom"
-            hideOnClick
-            divClassName={`flex h-[22px] px-3.5 justify-end mb-1 items-center rounded-md mr-1 box-border cursor-pointer bg-hover hover:bg-hoverbg transition-colors text-[12px] ${aiPanelOpen ? "text-accent" : "text-secondary"}`}
-            divStyle={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
-            divOnClick={onClick}
-        >
-            <i className="fa fa-sparkles" />
-        </Tooltip>
-    );
-});
-VTabBarAIButton.displayName = "VTabBarAIButton";
 
 const MacOSHeader = memo(() => {
     const env = useWaveEnv<VTabBarEnv>();
@@ -68,10 +38,6 @@ const MacOSHeader = memo(() => {
                 className="flex shrink-0 flex-row flex-wrap items-end px-1 pb-1 pl-2"
                 style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
             >
-                <VTabBarAIButton />
-                <Tooltip content="Workspace Switcher" placement="bottom" hideOnClick divClassName="flex items-center">
-                    <WorkspaceSwitcher />
-                </Tooltip>
                 <UpdateStatusBanner />
             </div>
         </>
@@ -186,6 +152,7 @@ function VTabWrapper({
 
 export function VTabBar({ workspace, className }: VTabBarProps) {
     const env = useWaveEnv<VTabBarEnv>();
+    const workspaceSidebarVisible = useAtomValue(WorkspaceLayoutModel.getInstance().workspaceSidebarVisibleAtom);
     const activeTabId = useAtomValue(env.atoms.staticTabId);
     const reinitVersion = useAtomValue(env.atoms.reinitVersion);
     const documentHasFocus = useAtomValue(env.atoms.documentHasFocus);
@@ -331,6 +298,7 @@ export function VTabBar({ workspace, className }: VTabBarProps) {
             onContextMenu={handleTabBarContextMenu}
         >
             {env.isMacOS() && <MacOSHeader />}
+            {workspaceSidebarVisible && <WorkspaceSwitcher mode="panel" />}
             <div
                 ref={scrollContainerRef}
                 className="relative flex min-h-0 flex-col overflow-y-auto"
@@ -414,7 +382,7 @@ export function VTabBar({ workspace, className }: VTabBarProps) {
                 })}
                 {dragTabId != null && dropIndex != null && dropLineTop != null && (
                     <div
-                        className="pointer-events-none absolute left-0 right-0 border-t-2 border-accent/80"
+                        className="pointer-events-none absolute left-0 right-0 border-t border-[#f1b6c8]/90"
                         style={{ top: dropLineTop, transform: "translateY(-1px)" }}
                     />
                 )}
@@ -427,8 +395,22 @@ export function VTabBar({ workspace, className }: VTabBarProps) {
                 onMouseLeave={() => setIsNewTabHovered(false)}
                 aria-label="New Tab"
             >
-                <div className="pointer-events-none absolute inset-x-1 inset-y-[4px] rounded-sm bg-transparent transition-colors group-hover:bg-hover" />
-                <i className="fa fa-solid fa-plus" style={{ fontSize: "10px" }} />
+                <div className="pointer-events-none absolute inset-x-1 inset-y-[4px] bg-transparent transition-colors group-hover:bg-hover" />
+                <span
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5 shrink-0 opacity-90"
+                    style={{
+                        backgroundColor: "#fff",
+                        WebkitMaskImage: 'url("/add_.svg")',
+                        maskImage: 'url("/add_.svg")',
+                        WebkitMaskRepeat: "no-repeat",
+                        maskRepeat: "no-repeat",
+                        WebkitMaskPosition: "center",
+                        maskPosition: "center",
+                        WebkitMaskSize: "contain",
+                        maskSize: "contain",
+                    }}
+                />
                 <span>New Tab</span>
             </button>
         </div>

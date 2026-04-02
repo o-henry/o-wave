@@ -9,11 +9,13 @@
     --grey-text-color: #666;
     --main-bg-color: rgb(34, 34, 34);
     --border-color: rgba(255, 255, 255, 0.16);
-    --base-font: normal 14px / normal "Inter", sans-serif;
-    --fixed-font: normal 12px / normal "Hack", monospace;
+    --base-font: normal 14px / normal "DM Mono Nerd Font", "1984 Body", sans-serif;
+    --fixed-font: normal 12px / normal "DM Mono Nerd Font", "1984 Body", monospace;
     --accent-color: rgb(88, 193, 66);
     --panel-bg-color: rgba(31, 33, 31, 0.5);
     --highlight-bg-color: rgba(255, 255, 255, 0.2);
+    --selection-border-color: #f1b6c8;
+    --selection-border-width: 0.5px;
     --markdown-font-family:
         -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji",
         "Segoe UI Emoji";
@@ -25,7 +27,7 @@
     --hover-bg-color: rgba(255, 255, 255, 0.1);
     --block-bg-color: rgba(0, 0, 0, 0.5);
     --block-bg-solid-color: rgb(0, 0, 0);
-    --block-border-radius: 8px;
+    --block-border-radius: 0px;
 
     --keybinding-color: #e0e0e0;
     --keybinding-bg-color: #333;
@@ -37,7 +39,7 @@
     --scrollbar-thumb-hover-color: rgba(255, 255, 255, 0.5);
     --scrollbar-thumb-active-color: rgba(255, 255, 255, 0.6);
 
-    --header-font: 700 11px / normal "Inter", sans-serif;
+    --header-font: 700 11px / normal "DM Mono Nerd Font", "1984 Body", sans-serif;
     --header-icon-size: 14px;
     --header-icon-width: 16px;
     --header-height: 30px;
@@ -81,7 +83,7 @@
     --modal-bg-color: #232323;
     --modal-header-bottom-border-color: rgba(241, 246, 243, 0.15);
     --modal-border-color: rgba(255, 255, 255, 0.12); /* toggle colors */
-    --modal-border-radius: 6px;
+    --modal-border-radius: 0px;
     --toggle-bg-color: var(--border-color);
     --modal-shadow-color: rgba(0, 0, 0, 0.8);
     --modal-box-shadow: box-shadow: 0px 8px 24px 0px var(--modal-shadow-color);

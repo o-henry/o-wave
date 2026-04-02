@@ -204,17 +204,7 @@ export class PreviewModel implements ViewModel {
             const mimeTypeLoadable = get(this.fileMimeTypeLoadable);
             const mimeType = jotaiLoadableValue(mimeTypeLoadable, "");
             if (mimeType == "directory") {
-                return {
-                    elemtype: "iconbutton",
-                    icon: "folder-open",
-                    longClick: (e: React.MouseEvent<any>) => {
-                        const menuItems: ContextMenuItem[] = BOOKMARKS.map((bookmark) => ({
-                            label: `Go to ${bookmark.label} (${bookmark.path})`,
-                            click: () => this.goHistory(bookmark.path),
-                        }));
-                        ContextMenuModel.getInstance().showContextMenu(menuItems, e);
-                    },
-                };
+                return null;
             }
             return iconForFile(mimeType);
         });

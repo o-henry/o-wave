@@ -32,10 +32,28 @@ export function TabBadges({ badges, flagColor, className }: TabBadgesProps) {
     const extraBadges = allBadges.slice(1, 3);
     return (
         <div className={cn(DefaultClassName, className)}>
-            <i
-                className={makeIconClass(firstBadge.icon, true, { defaultIcon: "circle-small" }) + " text-[12px]"}
-                style={{ color: firstBadge.color || "#fbbf24" }}
-            />
+            {firstBadge.icon === "bell" ? (
+                <span
+                    aria-hidden="true"
+                    className="h-[10px] w-[10px]"
+                    style={{
+                        backgroundColor: firstBadge.color || "#fbbf24",
+                        WebkitMaskImage: 'url("/yellow-circle.svg")',
+                        maskImage: 'url("/yellow-circle.svg")',
+                        WebkitMaskRepeat: "no-repeat",
+                        maskRepeat: "no-repeat",
+                        WebkitMaskPosition: "center",
+                        maskPosition: "center",
+                        WebkitMaskSize: "contain",
+                        maskSize: "contain",
+                    }}
+                />
+            ) : (
+                <i
+                    className={makeIconClass(firstBadge.icon, true, { defaultIcon: "circle-small" }) + " text-[12px]"}
+                    style={{ color: firstBadge.color || "#fbbf24" }}
+                />
+            )}
             {extraBadges.length > 0 && (
                 <div className="ml-[2px] flex flex-col items-center justify-center gap-[2px]">
                     {extraBadges.map((badge, idx) => (

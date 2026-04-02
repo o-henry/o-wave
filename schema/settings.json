@@ -262,6 +262,12 @@
         "window:bgcolor": {
           "type": "string"
         },
+        "window:bgimagepath": {
+          "type": "string"
+        },
+        "window:bgimageopacity": {
+          "type": "number"
+        },
         "window:reducedmotion": {
           "type": "boolean"
         },

@@ -1,89 +1,104 @@
 // Copyright 2025, Command Line Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-let isJetBrainsMonoLoaded = false;
-let isHackFontLoaded = false;
-let isHackNerdFontLoaded = false;
-let isInterFontLoaded = false;
+let isDmMonoNerdLoaded = false;
+let is1984BodyLoaded = false;
+let isDepartureMonoLoaded = false;
 
 function addToFontFaceSet(fontFaceSet: FontFaceSet, fontFace: FontFace) {
     // any cast to work around typing issue
     (fontFaceSet as any).add(fontFace);
 }
 
-function loadJetBrainsMonoFont() {
-    if (isJetBrainsMonoLoaded) {
+function loadDmMonoNerdFont() {
+    if (isDmMonoNerdLoaded) {
         return;
     }
-    isJetBrainsMonoLoaded = true;
-    const jbmFontNormal = new FontFace("JetBrains Mono", "url('fonts/jetbrains-mono-v13-latin-regular.woff2')", {
+    isDmMonoNerdLoaded = true;
+    const dmMonoLight = new FontFace("DM Mono Nerd Font", "url('fonts/dm-mono-light-nerd.ttf')", {
+        style: "normal",
+        weight: "300",
+    });
+    const dmMonoRegular = new FontFace("DM Mono Nerd Font", "url('fonts/dm-mono-regular-nerd.ttf')", {
         style: "normal",
         weight: "400",
     });
-    const jbmFont200 = new FontFace("JetBrains Mono", "url('fonts/jetbrains-mono-v13-latin-200.woff2')", {
+    const dmMonoMedium = new FontFace("DM Mono Nerd Font", "url('fonts/dm-mono-medium-nerd.ttf')", {
         style: "normal",
-        weight: "200",
+        weight: "500",
     });
-    const jbmFont700 = new FontFace("JetBrains Mono", "url('fonts/jetbrains-mono-v13-latin-700.woff2')", {
-        style: "normal",
-        weight: "700",
+    const dmMonoLightItalic = new FontFace("DM Mono Nerd Font", "url('fonts/dm-mono-light-italic-nerd.ttf')", {
+        style: "italic",
+        weight: "300",
     });
-    addToFontFaceSet(document.fonts, jbmFontNormal);
-    addToFontFaceSet(document.fonts, jbmFont200);
-    addToFontFaceSet(document.fonts, jbmFont700);
-    jbmFontNormal.load();
-    jbmFont200.load();
-    jbmFont700.load();
-}
-
-function loadHackNerdFont() {
-    if (isHackNerdFontLoaded) {
-        return;
-    }
-    isHackFontLoaded = true;
-    const hackRegular = new FontFace("Hack", "url('fonts/hacknerdmono-regular.ttf')", {
-        style: "normal",
-        weight: "400",
-    });
-    const hackBold = new FontFace("Hack", "url('fonts/hacknerdmono-bold.ttf')", {
-        style: "normal",
-        weight: "700",
-    });
-    const hackItalic = new FontFace("Hack", "url('fonts/hacknerdmono-italic.ttf')", {
+    const dmMonoItalic = new FontFace("DM Mono Nerd Font", "url('fonts/dm-mono-italic-nerd.ttf')", {
         style: "italic",
         weight: "400",
     });
-    const hackBoldItalic = new FontFace("Hack", "url('fonts/hacknerdmono-bolditalic.ttf')", {
-        style: "italic",
-        weight: "700",
-    });
-    addToFontFaceSet(document.fonts, hackRegular);
-    addToFontFaceSet(document.fonts, hackBold);
-    addToFontFaceSet(document.fonts, hackItalic);
-    addToFontFaceSet(document.fonts, hackBoldItalic);
-    hackRegular.load();
-    hackBold.load();
-    hackItalic.load();
-    hackBoldItalic.load();
+    const dmMonoMediumItalic = new FontFace(
+        "DM Mono Nerd Font",
+        "url('fonts/dm-mono-medium-italic-nerd.ttf')",
+        {
+            style: "italic",
+            weight: "500",
+        }
+    );
+    addToFontFaceSet(document.fonts, dmMonoLight);
+    addToFontFaceSet(document.fonts, dmMonoRegular);
+    addToFontFaceSet(document.fonts, dmMonoMedium);
+    addToFontFaceSet(document.fonts, dmMonoLightItalic);
+    addToFontFaceSet(document.fonts, dmMonoItalic);
+    addToFontFaceSet(document.fonts, dmMonoMediumItalic);
+    dmMonoLight.load();
+    dmMonoRegular.load();
+    dmMonoMedium.load();
+    dmMonoLightItalic.load();
+    dmMonoItalic.load();
+    dmMonoMediumItalic.load();
 }
 
-function loadInterFont() {
-    if (isInterFontLoaded) {
+function load1984BodyFont() {
+    if (is1984BodyLoaded) {
         return;
     }
-    isInterFontLoaded = true;
-    const interFont = new FontFace("Inter", "url('fonts/inter-variable.woff2')", {
+    is1984BodyLoaded = true;
+    const bodyLight = new FontFace("1984 Body", "url('fonts/1984-body-light.otf')", {
         style: "normal",
-        weight: "100 900",
+        weight: "300",
     });
-    addToFontFaceSet(document.fonts, interFont);
-    interFont.load();
+    const bodyRegular = new FontFace("1984 Body", "url('fonts/1984-body-regular.otf')", {
+        style: "normal",
+        weight: "400",
+    });
+    const bodyBold = new FontFace("1984 Body", "url('fonts/1984-body-bold.otf')", {
+        style: "normal",
+        weight: "700",
+    });
+    addToFontFaceSet(document.fonts, bodyLight);
+    addToFontFaceSet(document.fonts, bodyRegular);
+    addToFontFaceSet(document.fonts, bodyBold);
+    bodyLight.load();
+    bodyRegular.load();
+    bodyBold.load();
+}
+
+function loadDepartureMonoFont() {
+    if (isDepartureMonoLoaded) {
+        return;
+    }
+    isDepartureMonoLoaded = true;
+    const departureMono = new FontFace("Departure Mono", "url('fonts/departure-mono-regular.otf')", {
+        style: "normal",
+        weight: "400",
+    });
+    addToFontFaceSet(document.fonts, departureMono);
+    departureMono.load();
 }
 
 function loadFonts() {
-    loadInterFont();
-    loadJetBrainsMonoFont();
-    loadHackNerdFont();
+    load1984BodyFont();
+    loadDmMonoNerdFont();
+    loadDepartureMonoFont();
 }
 
 export { loadFonts };

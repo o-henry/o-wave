@@ -169,10 +169,10 @@ export function VTab({
             )}
         >
             {active && (
-                <div className="pointer-events-none absolute inset-x-1 inset-y-[4px] rounded-sm bg-foreground/10" />
+                <div className="pointer-events-none absolute inset-x-1 inset-y-[4px] border-[0.5px] border-[#f1b6c8] bg-foreground/10" />
             )}
             {!active && !isReordering && (
-                <div className="pointer-events-none absolute inset-x-1 inset-y-[4px] rounded-sm bg-transparent transition-colors group-hover:bg-foreground/10" />
+                <div className="pointer-events-none absolute inset-x-1 inset-y-[4px] bg-transparent transition-colors group-hover:bg-foreground/10" />
             )}
             <div
                 className={cn(
@@ -190,7 +190,7 @@ export function VTab({
                 className={cn(
                     "min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap transition-[padding-right] pr-3",
                     onClose && !isReordering && "group-hover:pr-6",
-                    isEditable && "rounded-[2px] bg-white/15 outline-none"
+                    isEditable && "bg-white/15 outline-none"
                 )}
                 contentEditable={isEditable}
                 role="textbox"

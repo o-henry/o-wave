@@ -12,7 +12,7 @@ function defaultEditorOptions(): MonacoTypes.editor.IEditorOptions {
     const opts: MonacoTypes.editor.IEditorOptions = {
         scrollBeyondLastLine: false,
         fontSize: 12,
-        fontFamily: "Hack",
+        fontFamily: '"DM Mono Nerd Font", "1984 Body", monospace',
         smoothScrolling: true,
         scrollbar: {
             useShadows: false,

@@ -97,6 +97,8 @@ const (
 	ConfigKey_WindowBlur                     = "window:blur"
 	ConfigKey_WindowOpacity                  = "window:opacity"
 	ConfigKey_WindowBgColor                  = "window:bgcolor"
+	ConfigKey_WindowBgImagePath              = "window:bgimagepath"
+	ConfigKey_WindowBgImageOpacity           = "window:bgimageopacity"
 	ConfigKey_WindowReducedMotion            = "window:reducedmotion"
 	ConfigKey_WindowTileGapSize              = "window:tilegapsize"
 	ConfigKey_WindowShowMenuBar              = "window:showmenubar"

@@ -104,7 +104,7 @@ body {
 }
 
 .fixed-font {
-	normal 12px / normal "Hack", monospace;
+	font: normal 12px / normal "DM Mono Nerd Font", "1984 Body", monospace;
 }
 					`}
                 </style>

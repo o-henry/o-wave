@@ -40,8 +40,7 @@ LoadingSpinner.displayName = "LoadingSpinner";
 
 const EmptyState = memo(({ onAddSecret }: { onAddSecret: () => void }) => {
     return (
-        <div className="flex flex-col items-center justify-center gap-4 py-12 h-full bg-zinc-800/50 rounded-lg">
-            <i className="fa-sharp fa-solid fa-key text-4xl text-zinc-600" />
+        <div className="flex flex-col items-center justify-center gap-4 py-12 h-full bg-zinc-800/50 rounded-lg uppercase">
             <h3 className="text-lg font-semibold text-zinc-400">No Secrets</h3>
             <p className="text-zinc-500">Add a secret to get started</p>
             <button

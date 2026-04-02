@@ -436,22 +436,26 @@ export class WaveBrowserWindow extends BaseWindow {
             return promise;
         }
         let timeoutHandle: ReturnType<typeof setTimeout> = null;
-        const timeoutPromise = new Promise<never>((_, reject) => {
-            timeoutHandle = setTimeout(() => {
-                console.log(
-                    `[dev] ${name} timed out after ${DevInitTimeoutMs}ms for tab ${tabId}, showing window for devtools`
-                );
-                if (!this.isDestroyed() && !this.isVisible()) {
-                    this.show();
-                }
-                if (this.activeTabView?.webContents && !this.activeTabView.webContents.isDevToolsOpened()) {
-                    this.activeTabView.webContents.openDevTools();
-                }
-                reject(new Error(`[dev] ${name} timed out after ${DevInitTimeoutMs}ms`));
-            }, DevInitTimeoutMs);
-        });
+        let timedOut = false;
+        const startTs = Date.now();
+        timeoutHandle = setTimeout(() => {
+            timedOut = true;
+            console.log(
+                `[dev] ${name} timed out after ${DevInitTimeoutMs}ms for tab ${tabId}, showing window for devtools`
+            );
+            if (!this.isDestroyed() && !this.isVisible()) {
+                this.show();
+            }
+            if (this.activeTabView?.webContents && !this.activeTabView.webContents.isDevToolsOpened()) {
+                this.activeTabView.webContents.openDevTools();
+            }
+        }, DevInitTimeoutMs);
         try {
-            return await Promise.race([promise, timeoutPromise]);
+            const result = await promise;
+            if (timedOut) {
+                console.log(`[dev] ${name} resolved after ${Date.now() - startTs}ms for tab ${tabId}`);
+            }
+            return result;
         } finally {
             clearTimeout(timeoutHandle);
         }

@@ -46,6 +46,7 @@ class WorkspaceLayoutModel {
     aiPanelWrapperRef: HTMLDivElement | null;
     vtabPanelWrapperRef: HTMLDivElement | null;
     panelVisibleAtom: jotai.PrimitiveAtom<boolean>;
+    workspaceSidebarVisibleAtom: jotai.PrimitiveAtom<boolean>;
 
     private inResize: boolean;
     private aiPanelVisible: boolean;
@@ -72,6 +73,7 @@ class WorkspaceLayoutModel {
         this.vtabWidth = VTabBar_DefaultWidth;
         this.vtabVisible = false;
         this.panelVisibleAtom = jotai.atom(false);
+        this.workspaceSidebarVisibleAtom = jotai.atom(true);
         this.widgetsSidebarVisibleAtom = jotai.atom(
             (get) =>
                 get(getOrefMetaKeyAtom(WOS.makeORef("workspace", this.getWorkspaceId()), "layout:widgetsvisible")) ??
@@ -110,6 +112,18 @@ class WorkspaceLayoutModel {
                 console.warn("Failed to persist vtabbar width:", e);
             }
         }, 300);
+    }
+
+    getWorkspaceSidebarVisible(): boolean {
+        return globalStore.get(this.workspaceSidebarVisibleAtom);
+    }
+
+    setWorkspaceSidebarVisible(visible: boolean): void {
+        globalStore.set(this.workspaceSidebarVisibleAtom, visible);
+    }
+
+    toggleWorkspaceSidebarVisible(): void {
+        this.setWorkspaceSidebarVisible(!this.getWorkspaceSidebarVisible());
     }
 
     static getInstance(): WorkspaceLayoutModel {

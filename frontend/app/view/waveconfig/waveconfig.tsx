@@ -33,7 +33,7 @@ const ConfigSidebar = memo(({ model }: ConfigSidebarProps) => {
     };
 
     return (
-        <div className="flex flex-col w-48 border-r border-border @w600:h-full @max-w600:absolute @max-w600:left-0.5 @max-w600:top-0 @max-w600:bottom-0.5 @max-w600:z-10 @max-w600:bg-background @max-w600:shadow-xl @max-w600:rounded-bl">
+        <div className="flex flex-col w-48 border-r border-border uppercase @w600:h-full @max-w600:absolute @max-w600:left-0.5 @max-w600:top-0 @max-w600:bottom-0.5 @max-w600:z-10 @max-w600:bg-background @max-w600:shadow-xl @max-w600:rounded-bl">
             <div className="flex items-center justify-between px-4 py-2 border-b border-border @w600:hidden">
                 <span className="font-semibold">Config Files</span>
                 <button
@@ -164,7 +164,7 @@ const WaveConfigView = memo(({ blockId, model }: ViewComponentProps<WaveConfigVi
     const saveTooltip = `Save (${model.saveShortcut})`;
 
     return (
-        <div className="@container flex flex-col w-full h-full">
+        <div className="@container flex flex-col w-full h-full uppercase">
             <div className="flex flex-row flex-1 min-h-0">
                 {isMenuOpen && (
                     <div
@@ -182,9 +182,24 @@ const WaveConfigView = memo(({ blockId, model }: ViewComponentProps<WaveConfigVi
                                 <div className="flex items-baseline gap-2 min-w-0">
                                     <button
                                         onClick={() => setIsMenuOpen(true)}
-                                        className="@w600:hidden hover:bg-secondary/50 rounded p-1 cursor-pointer transition-colors mr-2 shrink-0"
+                                        className="@w600:hidden hover:bg-secondary/50 rounded p-1 cursor-pointer transition-colors mr-2 shrink-0 text-[#d8d3cb]"
+                                        aria-label="Open config files"
                                     >
-                                        <i className="fa fa-bars" />
+                                        <span
+                                            aria-hidden="true"
+                                            className="block h-3.5 w-3.5"
+                                            style={{
+                                                backgroundColor: "currentColor",
+                                                WebkitMaskImage: 'url("/box-2-svgrepo-com.svg")',
+                                                maskImage: 'url("/box-2-svgrepo-com.svg")',
+                                                WebkitMaskRepeat: "no-repeat",
+                                                maskRepeat: "no-repeat",
+                                                WebkitMaskPosition: "center",
+                                                maskPosition: "center",
+                                                WebkitMaskSize: "contain",
+                                                maskSize: "contain",
+                                            }}
+                                        />
                                     </button>
                                     <div className="text-lg font-semibold whitespace-nowrap shrink-0">
                                         {selectedFile.name}
@@ -196,8 +211,23 @@ const WaveConfigView = memo(({ blockId, model }: ViewComponentProps<WaveConfigVi
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="!text-muted-foreground hover:!text-primary transition-colors ml-1 shrink-0 cursor-pointer"
+                                                aria-label="Open documentation"
                                             >
-                                                <i className="fa fa-book text-sm" />
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="block h-3.5 w-3.5"
+                                                    style={{
+                                                        backgroundColor: "currentColor",
+                                                        WebkitMaskImage: 'url("/box-2-svgrepo-com.svg")',
+                                                        maskImage: 'url("/box-2-svgrepo-com.svg")',
+                                                        WebkitMaskRepeat: "no-repeat",
+                                                        maskRepeat: "no-repeat",
+                                                        WebkitMaskPosition: "center",
+                                                        maskPosition: "center",
+                                                        WebkitMaskSize: "contain",
+                                                        maskSize: "contain",
+                                                    }}
+                                                />
                                             </a>
                                         </Tooltip>
                                     )}
