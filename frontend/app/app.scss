@@ -37,8 +37,14 @@ body {
 
 *::-webkit-scrollbar-thumb {
     background-color: var(--scrollbar-thumb-color);
-    border-radius: 4px;
+    border-radius: 0;
     margin: 0 1px 0 1px;
+}
+
+*,
+*::before,
+*::after {
+    border-radius: 0 !important;
 }
 
 *::-webkit-scrollbar-thumb:hover {

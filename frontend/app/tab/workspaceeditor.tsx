@@ -1,9 +1,10 @@
-import { fireAndForget, makeIconClass } from "@/util/util";
+import { fireAndForget } from "@/util/util";
 import clsx from "clsx";
 import { memo, useEffect, useRef, useState } from "react";
 import { Button } from "../element/button";
 import { Input } from "../element/input";
 import { WorkspaceService } from "../store/services";
+import { WorkspaceIcon } from "./workspaceicon";
 import "./workspaceeditor.scss";
 
 interface ColorSelectorProps {
@@ -46,16 +47,14 @@ const IconSelector = memo(({ icons, selectedIcon, onSelect, className }: IconSel
 
     return (
         <div className={clsx("icon-selector", className)}>
-            {icons.map((icon) => {
-                const iconClass = makeIconClass(icon, true);
-                return (
-                    <i
-                        key={icon}
-                        className={clsx(iconClass, "icon-item", { selected: selectedIcon === icon })}
-                        onClick={() => handleIconClick(icon)}
-                    />
-                );
-            })}
+            {icons.map((icon) => (
+                <WorkspaceIcon
+                    key={icon}
+                    icon={icon}
+                    className={clsx("icon-item", { selected: selectedIcon === icon })}
+                    onClick={() => handleIconClick(icon)}
+                />
+            ))}
         </div>
     );
 });
@@ -114,7 +113,7 @@ const WorkspaceEditorComponent = ({
             <ColorSelector selectedColor={color} colors={colors} onSelect={onColorChange} />
             <IconSelector selectedIcon={icon} icons={icons} onSelect={onIconChange} />
             <div className="delete-ws-btn-wrapper">
-                <Button className="ghost red text-[12px] bold" onClick={onDeleteWorkspace}>
+                <Button className="ghost red text-[12px] bold uppercase" onClick={onDeleteWorkspace}>
                     Delete workspace
                 </Button>
             </div>

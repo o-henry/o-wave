@@ -17,6 +17,18 @@ interface ConnectionButtonProps {
     isTerminalBlock?: boolean;
 }
 
+const terminalMaskIconStyle: React.CSSProperties = {
+    backgroundColor: "#fff",
+    WebkitMaskImage: 'url("/connection-terminal.svg")',
+    maskImage: 'url("/connection-terminal.svg")',
+    WebkitMaskRepeat: "no-repeat",
+    maskRepeat: "no-repeat",
+    WebkitMaskPosition: "center",
+    maskPosition: "center",
+    WebkitMaskSize: "contain",
+    maskSize: "contain",
+};
+
 export const ConnectionButton = React.memo(
     React.forwardRef<HTMLDivElement, ConnectionButtonProps>(
         ({ connection, changeConnModalAtom, isTerminalBlock }: ConnectionButtonProps, ref) => {
@@ -49,13 +61,24 @@ export const ConnectionButton = React.memo(
                     }
                     if (isTerminalBlock) {
                         connDisplayName = localName;
-                        extraDisplayNameClassName = "text-muted group-hover:text-secondary";
+                        extraDisplayNameClassName =
+                            'text-muted group-hover:text-secondary uppercase [font-family:"Departure_Mono","DM_Mono_Nerd_Font",monospace]';
                     }
                 }
                 connIconElem = (
-                    <i
-                        className={util.cn(util.makeIconClass("laptop", false), "fa-stack-1x mr-[2px]")}
-                        style={{ color: color }}
+                    <span
+                        aria-hidden="true"
+                        className="block shrink-0"
+                        style={{
+                            ...terminalMaskIconStyle,
+                            width: "11px",
+                            height: "11px",
+                            minWidth: "11px",
+                            flex: "0 0 11px",
+                            position: "absolute",
+                            inset: "0",
+                            margin: "auto",
+                        }}
                     />
                 );
             } else {
@@ -121,25 +144,40 @@ export const ConnectionButton = React.memo(
                             )}
                         >
                             {connIconElem}
-                            <i
+                            <span
+                                aria-hidden="true"
                                 className={util.cn(
-                                    "fa-slash fa-solid fa-stack-1x mr-[2px] [text-shadow:0_1px_black,0_1.5px_black]",
+                                    "block shrink-0",
                                     showDisconnectedSlash ? "opacity-100" : "opacity-0"
                                 )}
-                                style={{ color: color }}
+                                style={{
+                                    ...terminalMaskIconStyle,
+                                    backgroundColor: color,
+                                    WebkitMaskImage: 'url("/xmark.svg")',
+                                    maskImage: 'url("/xmark.svg")',
+                                    width: "11px",
+                                    height: "11px",
+                                    minWidth: "11px",
+                                    flex: "0 0 11px",
+                                    position: "absolute",
+                                    inset: "0",
+                                    margin: "auto",
+                                }}
                             />
                         </span>
                         {connDisplayName ? (
                             <div
                                 className={util.cn(
-                                    "flex-[1_2_auto] overflow-hidden pr-1 ellipsis",
+                                    'flex-[1_2_auto] overflow-hidden pr-1 ellipsis uppercase [font-family:"Departure_Mono","DM_Mono_Nerd_Font",monospace]',
                                     extraDisplayNameClassName
                                 )}
                             >
                                 {connDisplayName}
                             </div>
                         ) : isLocal ? null : (
-                            <div className="flex-[1_2_auto] overflow-hidden pr-1 ellipsis">{connection}</div>
+                            <div className='flex-[1_2_auto] overflow-hidden pr-1 ellipsis uppercase [font-family:"Departure_Mono","DM_Mono_Nerd_Font",monospace]'>
+                                {connection}
+                            </div>
                         )}
                     </div>
                     {showNoWshButton && (

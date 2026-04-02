@@ -375,9 +375,52 @@ function getDefaultNewBlockDef(): BlockDef {
     return termBlockDef;
 }
 
+function getDefaultFilesBlockDef(): BlockDef {
+    const layoutModel = getLayoutModelForStaticTab();
+    const focusedNode = globalStore.get(layoutModel.focusedNode);
+    const focusedBlockId = focusedNode?.data?.blockId;
+    const blockAtom = focusedBlockId ? WOS.getWaveObjectAtom<Block>(WOS.makeORef("block", focusedBlockId)) : null;
+    const blockData = blockAtom ? globalStore.get(blockAtom) : null;
+    const meta: Record<string, any> = {
+        view: "preview",
+        file: blockData?.meta?.["cmd:cwd"] ?? blockData?.meta?.file ?? "/",
+    };
+    if (blockData?.meta?.connection != null) {
+        meta.connection = blockData.meta.connection;
+    }
+    return { meta };
+}
+
+function getDefaultWebBlockDef(): BlockDef {
+    const layoutModel = getLayoutModelForStaticTab();
+    const focusedNode = globalStore.get(layoutModel.focusedNode);
+    const focusedBlockId = focusedNode?.data?.blockId;
+    const blockAtom = focusedBlockId ? WOS.getWaveObjectAtom<Block>(WOS.makeORef("block", focusedBlockId)) : null;
+    const blockData = blockAtom ? globalStore.get(blockAtom) : null;
+    const meta: Record<string, any> = {
+        view: "web",
+    };
+    if (blockData?.meta?.url != null) {
+        meta.url = blockData.meta.url;
+    }
+    return { meta };
+}
+
 async function handleCmdN() {
     const blockDef = getDefaultNewBlockDef();
     await createBlock(blockDef);
+}
+
+async function handleQuickTerminal() {
+    await createBlock(getDefaultNewBlockDef());
+}
+
+async function handleQuickFiles() {
+    await createBlock(getDefaultFilesBlockDef());
+}
+
+async function handleQuickWeb() {
+    await createBlock(getDefaultWebBlockDef());
 }
 
 async function handleSplitHorizontal(position: "before" | "after") {
@@ -551,6 +594,10 @@ function registerGlobalKeys() {
         if (focusedNode != null) {
             layoutModel.magnifyNodeToggle(focusedNode.id);
         }
+        return true;
+    });
+    globalKeyMap.set("Cmd:\\", () => {
+        WorkspaceLayoutModel.getInstance().toggleWorkspaceSidebarVisible();
         return true;
     });
     globalKeyMap.set("Ctrl:Shift:ArrowUp", () => {
@@ -738,6 +785,22 @@ function registerGlobalKeys() {
     globalKeyMap.set("Cmd:Shift:a", () => {
         const currentVisible = WorkspaceLayoutModel.getInstance().getAIPanelVisible();
         WorkspaceLayoutModel.getInstance().setAIPanelVisible(!currentVisible);
+        return true;
+    });
+    globalKeyMap.set("Cmd:,", () => {
+        window.dispatchEvent(new CustomEvent("wave:open-settings-shortcuts"));
+        return true;
+    });
+    globalKeyMap.set("Cmd:Option:1", () => {
+        handleQuickTerminal();
+        return true;
+    });
+    globalKeyMap.set("Cmd:Option:2", () => {
+        handleQuickFiles();
+        return true;
+    });
+    globalKeyMap.set("Cmd:Option:3", () => {
+        handleQuickWeb();
         return true;
     });
     const allKeys = Array.from(globalKeyMap.keys());

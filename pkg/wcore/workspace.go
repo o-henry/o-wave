@@ -31,23 +31,33 @@ var WorkspaceColors = [...]string{
 	"#FF453A", // Red
 	"#FF9500", // Orange
 	"#FFE900", // Yellow
+	"#F1B6C8", // Light pink
+	"#FF7DB7", // Pink
+	"#7ED957", // Lime
+	"#19C2FF", // Sky blue
+	"#6E56CF", // Indigo
+	"#FFB3C1", // Soft rose
+	"#FFD166", // Warm amber
 }
 
 var WorkspaceIcons = [...]string{
-	"custom@wave-logo-solid",
 	"triangle",
 	"star",
 	"heart",
 	"bolt",
-	"solid@cloud",
 	"moon",
 	"layer-group",
 	"rocket",
 	"flask",
-	"paperclip",
-	"chart-line",
-	"graduation-cap",
-	"mug-hot",
+	"workspace@add",
+	"workspace@box-outer-light-dashed-all",
+	"workspace@box-2",
+	"workspace@box",
+	"workspace@chart",
+	"workspace@circle",
+	"workspace@terminal",
+	"workspace@web",
+	"workspace@terminal-alt",
 }
 
 func CreateWorkspace(ctx context.Context, name string, icon string, color string, applyDefaults bool, isInitialLaunch bool) (*waveobj.Workspace, error) {

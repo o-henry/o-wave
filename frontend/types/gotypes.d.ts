@@ -1452,6 +1452,8 @@ declare global {
         "window:blur"?: boolean;
         "window:opacity"?: number;
         "window:bgcolor"?: string;
+        "window:bgimagepath"?: string;
+        "window:bgimageopacity"?: number;
         "window:reducedmotion"?: boolean;
         "window:tilegapsize"?: number;
         "window:showmenubar"?: boolean;

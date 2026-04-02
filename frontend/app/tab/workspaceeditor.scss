@@ -49,6 +49,11 @@
         margin-top: 15px;
 
         .icon-item {
+            width: 15px;
+            height: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             font-size: 15px;
             color: oklch(from var(--modal-bg-color) calc(l * 1.5) c h);
             cursor: pointer;
@@ -58,6 +63,10 @@
             &:hover {
                 color: var(--main-text-color);
             }
+        }
+
+        .workspace-icon-mask {
+            flex: 0 0 15px;
         }
     }
 

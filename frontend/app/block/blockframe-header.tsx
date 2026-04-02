@@ -12,6 +12,7 @@ import { ConnectionButton } from "@/app/block/connectionbutton";
 import { DurableSessionFlyover } from "@/app/block/durable-session-flyover";
 import { getBlockBadgeAtom } from "@/app/store/badge";
 import {
+    createBlock,
     createBlockSplitHorizontally,
     createBlockSplitVertically,
     recordTEvent,
@@ -128,6 +129,45 @@ const HeaderEndIcons = React.memo(({ viewModel, nodeModel, blockId }: HeaderEndI
     const showSplitButtons = jotai.useAtomValue(blockEnv.getSettingsKeyAtom("term:showsplitbuttons"));
 
     const endIconsElem: React.ReactElement[] = [];
+    const blockAtom = WOS.getWaveObjectAtom<Block>(WOS.makeORef("block", blockId));
+    const blockData = globalStore.get(blockAtom);
+
+    const createTerminalBlock = () => {
+        const blockDef: BlockDef = {
+            meta: {
+                view: "term",
+                controller: "shell",
+            },
+        };
+        if (blockData?.meta?.connection != null) {
+            blockDef.meta.connection = blockData.meta.connection;
+        }
+        if (blockData?.meta?.["cmd:cwd"] != null) {
+            blockDef.meta["cmd:cwd"] = blockData.meta["cmd:cwd"];
+        }
+        createBlock(blockDef);
+    };
+
+    const createFilesBlock = () => {
+        const meta: Record<string, any> = {
+            view: "preview",
+            file: blockData?.meta?.["cmd:cwd"] ?? blockData?.meta?.file ?? "/",
+        };
+        if (blockData?.meta?.connection != null) {
+            meta.connection = blockData.meta.connection;
+        }
+        createBlock({ meta });
+    };
+
+    const createWebBlock = () => {
+        const meta: Record<string, any> = {
+            view: "web",
+        };
+        if (blockData?.meta?.url != null) {
+            meta.url = blockData.meta.url;
+        }
+        createBlock({ meta });
+    };
 
     if (endIconButtons && endIconButtons.length > 0) {
         endIconsElem.push(...endIconButtons.map((button, idx) => <IconButton key={idx} decl={button} />));
@@ -139,8 +179,6 @@ const HeaderEndIcons = React.memo(({ viewModel, nodeModel, blockId }: HeaderEndI
             title: "Split Horizontally",
             click: (e) => {
                 e.stopPropagation();
-                const blockAtom = WOS.getWaveObjectAtom<Block>(WOS.makeORef("block", blockId));
-                const blockData = globalStore.get(blockAtom);
                 const blockDef: BlockDef = {
                     meta: blockData?.meta || { view: "term", controller: "shell" },
                 };
@@ -153,8 +191,6 @@ const HeaderEndIcons = React.memo(({ viewModel, nodeModel, blockId }: HeaderEndI
             title: "Split Vertically",
             click: (e) => {
                 e.stopPropagation();
-                const blockAtom = WOS.getWaveObjectAtom<Block>(WOS.makeORef("block", blockId));
-                const blockData = globalStore.get(blockAtom);
                 const blockDef: BlockDef = {
                     meta: blockData?.meta || { view: "term", controller: "shell" },
                 };
@@ -171,6 +207,42 @@ const HeaderEndIcons = React.memo(({ viewModel, nodeModel, blockId }: HeaderEndI
         click: (e) => handleHeaderContextMenu(e, blockId, viewModel, nodeModel, blockEnv),
     };
     endIconsElem.push(<IconButton key="settings" decl={settingsDecl} className="block-frame-settings" />);
+    endIconsElem.push(
+        <button
+            key="quick-terminal"
+            type="button"
+            className="block-frame-quick-action block-frame-quick-action-terminal"
+            onClick={createTerminalBlock}
+            aria-label="Terminal"
+            title="Terminal"
+        >
+            <span aria-hidden="true" className="block-frame-quick-action-icon" />
+        </button>
+    );
+    endIconsElem.push(
+        <button
+            key="quick-files"
+            type="button"
+            className="block-frame-quick-action block-frame-quick-action-files"
+            onClick={createFilesBlock}
+            aria-label="Files"
+            title="Files"
+        >
+            <span aria-hidden="true" className="block-frame-quick-action-icon" />
+        </button>
+    );
+    endIconsElem.push(
+        <button
+            key="quick-web"
+            type="button"
+            className="block-frame-quick-action block-frame-quick-action-web"
+            onClick={createWebBlock}
+            aria-label="Web"
+            title="Web"
+        >
+            <span aria-hidden="true" className="block-frame-quick-action-icon" />
+        </button>
+    );
     if (ephemeral) {
         const addToLayoutDecl: IconButtonDecl = {
             elemtype: "iconbutton",
@@ -235,6 +307,8 @@ const BlockFrame_Header = ({
     const isTerminalBlock = metaView === "term";
     viewName = metaFrameTitle ?? viewName;
     viewIconUnion = metaFrameIcon ?? viewIconUnion;
+    const showViewIcon = !(metaView === "preview" && metaFrameIcon == null);
+    const showIconViewSection = showViewIcon || (viewName && !hideViewName);
 
     React.useEffect(() => {
         if (magnified && !preview && !prevMagifiedState.current) {
@@ -256,10 +330,12 @@ const BlockFrame_Header = ({
             {!useTermHeader && (
                 <>
                     {preIconButton && <IconButton decl={preIconButton} className="block-frame-preicon-button" />}
-                    <div className="block-frame-default-header-iconview">
-                        {viewIconElem}
-                        {viewName && !hideViewName && <div className="block-frame-view-type">{viewName}</div>}
-                    </div>
+                    {showIconViewSection && (
+                        <div className="block-frame-default-header-iconview">
+                            {showViewIcon && viewIconElem}
+                            {viewName && !hideViewName && <div className="block-frame-view-type">{viewName}</div>}
+                        </div>
+                    )}
                 </>
             )}
             {manageConnection && (
@@ -282,7 +358,21 @@ const BlockFrame_Header = ({
             )}
             {useTermHeader && badge && (
                 <div className="pointer-events-none flex items-center px-1" style={{ color: badge.color || "#fbbf24" }}>
-                    <i className={makeIconClass(badge.icon, true, { defaultIcon: "circle-small" })} />
+                    <span
+                        aria-hidden="true"
+                        className="h-3 w-3 shrink-0"
+                        style={{
+                            backgroundColor: badge.color || "#fbbf24",
+                            WebkitMaskImage: 'url("/yellow-circle.svg")',
+                            maskImage: 'url("/yellow-circle.svg")',
+                            WebkitMaskRepeat: "no-repeat",
+                            maskRepeat: "no-repeat",
+                            WebkitMaskPosition: "center",
+                            maskPosition: "center",
+                            WebkitMaskSize: "contain",
+                            maskSize: "contain",
+                        }}
+                    />
                 </div>
             )}
             <HeaderTextElems viewModel={viewModel} blockId={nodeModel.blockId} preview={preview} error={error} />

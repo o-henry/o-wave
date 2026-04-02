@@ -14,6 +14,70 @@
 
     .block-frame-icon {
         margin-right: 0.5em;
+
+        &.fa-globe {
+            color: transparent !important;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            min-width: 14px;
+            font-size: 0 !important;
+            line-height: 0;
+
+            &::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                margin: auto;
+                display: block;
+                width: 14px;
+                height: 14px;
+                background-color: #fff;
+                -webkit-mask-image: url("/web-header.svg");
+                mask-image: url("/web-header.svg");
+                -webkit-mask-repeat: no-repeat;
+                mask-repeat: no-repeat;
+                -webkit-mask-position: center;
+                mask-position: center;
+                -webkit-mask-size: contain;
+                mask-size: contain;
+            }
+        }
+
+        &.fa-file {
+            color: transparent !important;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            min-width: 16px;
+            font-size: 0 !important;
+            line-height: 0;
+
+            &::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                margin: auto;
+                display: block;
+                width: 16px;
+                height: 16px;
+                background-color: #fff;
+                -webkit-mask-image: url("/files-quick.svg");
+                mask-image: url("/files-quick.svg");
+                -webkit-mask-repeat: no-repeat;
+                mask-repeat: no-repeat;
+                -webkit-mask-position: center;
+                mask-position: center;
+                -webkit-mask-size: contain;
+                mask-size: contain;
+            }
+        }
     }
 
     .block-content {
@@ -94,9 +158,14 @@
                     overflow-x: hidden;
 
                     .block-frame-view-icon {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
                         font-size: var(--header-icon-size);
                         opacity: 0.5;
-                        width: var(--header-icon-width);
+                        width: 18px;
+                        min-width: 18px;
+                        height: 18px;
                         i {
                             margin-right: 0;
                         }
@@ -128,6 +197,8 @@
                     &.preview-filename {
                         direction: rtl;
                         text-align: left;
+                        text-transform: uppercase;
+                        font-family: "Departure Mono", "DM Mono Nerd Font", monospace;
                         span {
                             cursor: pointer;
 
@@ -231,24 +302,153 @@
                 .block-frame-end-icons {
                     display: flex;
                     flex-shrink: 0;
+                    align-items: center;
+                    gap: 0;
 
                     .wave-iconbutton {
                         display: flex;
                         width: 24px;
-                        padding: 4px 6px;
+                        height: 24px;
+                        padding: 0;
                         align-items: center;
+                        justify-content: center;
+                        flex: 0 0 24px;
+                    }
+
+                    .block-frame-quick-action {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 24px;
+                        height: 24px;
+                        padding: 0;
+                        border: none;
+                        background: transparent;
+                        color: var(--secondary-text-color);
+                        cursor: pointer;
+                        flex: 0 0 24px;
+
+                        &:hover {
+                            color: var(--main-text-color);
+                            background: var(--highlight-bg-color);
+                        }
+
+                        .block-frame-quick-action-icon {
+                            display: block;
+                            width: 14px;
+                            height: 14px;
+                            background-color: #fff;
+                            -webkit-mask-repeat: no-repeat;
+                            mask-repeat: no-repeat;
+                            -webkit-mask-position: center;
+                            mask-position: center;
+                            -webkit-mask-size: contain;
+                            mask-size: contain;
+                        }
+                    }
+
+                    .block-frame-quick-action-terminal .block-frame-quick-action-icon {
+                        -webkit-mask-image: url("/terminal-quick.svg");
+                        mask-image: url("/terminal-quick.svg");
+                    }
+
+                    .block-frame-quick-action-files .block-frame-quick-action-icon {
+                        -webkit-mask-image: url("/files-quick.svg");
+                        mask-image: url("/files-quick.svg");
+                        width: 16px;
+                        height: 16px;
+                    }
+
+                    .block-frame-quick-action-web .block-frame-quick-action-icon {
+                        -webkit-mask-image: url("/web-quick.svg");
+                        mask-image: url("/web-quick.svg");
+                        width: 12px;
+                        height: 12px;
+                    }
+
+                    .block-frame-magnify,
+                    .block-frame-settings,
+                    .block-frame-default-close {
+                        position: relative;
+                        width: 24px;
+                        height: 24px;
+                        padding: 0;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        overflow: hidden;
                     }
 
                     .block-frame-magnify {
-                        justify-content: center;
-                        align-items: center;
-                        padding: 0;
-
+                        i,
                         svg {
-                            #arrow1,
-                            #arrow2 {
-                                fill: var(--main-text-color);
+                            display: none;
+                        }
+
+                        &::before {
+                            content: "";
+                            position: absolute;
+                            inset: 0;
+                            margin: auto;
+                            display: block;
+                            width: 14px;
+                            height: 14px;
+                            background-color: #fff;
+                            -webkit-mask-image: url("/_expand.svg");
+                            mask-image: url("/_expand.svg");
+                            -webkit-mask-repeat: no-repeat;
+                            mask-repeat: no-repeat;
+                            -webkit-mask-position: center;
+                            mask-position: center;
+                            -webkit-mask-size: contain;
+                            mask-size: contain;
+                        }
+
+                        &.is-magnified {
+                            &::before {
+                                -webkit-mask-image: url("/_contract.svg");
+                                mask-image: url("/_contract.svg");
                             }
+                        }
+                    }
+
+                    .block-frame-settings {
+                        i {
+                            display: none;
+                        }
+
+                        &::before {
+                            content: "";
+                            position: absolute;
+                            inset: 0;
+                            margin: auto;
+                            display: block;
+                            width: 14px;
+                            height: 14px;
+                            background-color: #fff;
+                            -webkit-mask-image: url("/setting3.svg");
+                            mask-image: url("/setting3.svg");
+                            -webkit-mask-repeat: no-repeat;
+                            mask-repeat: no-repeat;
+                            -webkit-mask-position: center;
+                            mask-position: center;
+                            -webkit-mask-size: contain;
+                            mask-size: contain;
+                        }
+                    }
+
+                    .block-frame-default-close {
+                        i {
+                            position: absolute;
+                            inset: 0;
+                            margin: auto;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 14px;
+                            height: 14px;
+                            line-height: 1;
+                            font-size: 12px;
                         }
                     }
                 }
@@ -403,7 +603,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            border: 2px solid transparent;
+            border: var(--selection-border-width) solid transparent;
             pointer-events: none;
             padding: 2px;
             border-radius: var(--block-border-radius);
@@ -434,13 +634,13 @@
 
         &.block-focused {
             .block-mask {
-                border: 2px solid var(--accent-color);
+                border: var(--selection-border-width) solid var(--selection-border-color);
             }
 
             &.block-no-highlight,
             &.block-preview {
                 .block-mask {
-                    border: 2px solid rgb(from var(--border-color) r g b / 10%) !important;
+                    border: var(--selection-border-width) solid rgb(from var(--border-color) r g b / 10%) !important;
                 }
             }
         }

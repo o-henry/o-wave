@@ -3,12 +3,13 @@
 
 import { MetaKeyAtomFnType, useWaveEnv, WaveEnv, WaveEnvSubset } from "@/app/waveenv/waveenv";
 import { PLATFORM, PlatformMacOS } from "@/util/platformutil";
-import { computeBgStyleFromMeta } from "@/util/waveutil";
+import * as util from "@/util/util";
+import { computeBgStyleFromMeta, encodeFileURL } from "@/util/waveutil";
 import useResizeObserver from "@react-hook/resize-observer";
 import { useAtomValue } from "jotai";
 import { CSSProperties, useCallback, useLayoutEffect, useRef } from "react";
 import { debounce } from "throttle-debounce";
-import { atoms, getApi, WOS } from "./store/global";
+import { atoms, getApi, getSettingsPrefixAtom, WOS } from "./store/global";
 import { useWaveObjectValue } from "./store/wos";
 
 type AppBgEnv = WaveEnvSubset<{
@@ -20,11 +21,22 @@ export function AppBackground() {
     const bgRef = useRef<HTMLDivElement>(null);
     const tabId = useAtomValue(atoms.staticTabId);
     const [tabData] = useWaveObjectValue<Tab>(WOS.makeORef("tab", tabId));
+    const windowSettings = useAtomValue(getSettingsPrefixAtom("window"));
     const env = useWaveEnv<AppBgEnv>();
     const tabBg = useAtomValue(env.getTabMetaKeyAtom(tabId, "tab:background"));
     const configBg = useAtomValue(env.getConfigBackgroundAtom(tabBg));
     const resolvedMeta: Omit<BackgroundConfigType, "display:name"> = tabBg && configBg ? configBg : tabData?.meta;
     const style: CSSProperties = computeBgStyleFromMeta(resolvedMeta, 0.5) ?? {};
+    const hasWindowBgImage = !util.isBlank(windowSettings?.["window:bgimagepath"]);
+    const windowBgImageStyle: CSSProperties = hasWindowBgImage
+        ? {
+              opacity: util.boundNumber(windowSettings?.["window:bgimageopacity"] ?? 0.22, 0, 1),
+              backgroundImage: `url("${encodeFileURL(windowSettings?.["window:bgimagepath"])}")`,
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "cover",
+          }
+        : { opacity: 0 };
     const getAvgColor = useCallback(
         debounce(30, () => {
             if (
@@ -53,10 +65,16 @@ export function AppBackground() {
     useResizeObserver(bgRef, getAvgColor);
 
     return (
-        <div
-            ref={bgRef}
-            className="pointer-events-none absolute top-0 left-0 w-full h-full z-[var(--zindex-app-background)]"
-            style={style}
-        />
+        <>
+            <div
+                className="pointer-events-none absolute top-0 left-0 w-full h-full z-[var(--zindex-app-background)]"
+                style={windowBgImageStyle}
+            />
+            <div
+                ref={bgRef}
+                className="pointer-events-none absolute top-0 left-0 w-full h-full z-[var(--zindex-app-background)]"
+                style={style}
+            />
+        </>
     );
 }
