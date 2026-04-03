@@ -239,6 +239,31 @@ function switchBlockByBlockNum(index: number) {
     }, 10);
 }
 
+function cycleBlockFocus(offset: number) {
+    const layoutModel = getLayoutModelForStaticTab();
+    if (!layoutModel) {
+        return;
+    }
+    const leafOrder = globalStore.get(layoutModel.leafOrder);
+    if (leafOrder.length === 0) {
+        return;
+    }
+    const focusedNode = globalStore.get(layoutModel.focusedNode);
+    if (!focusedNode) {
+        layoutModel.focusFirstNode();
+        setTimeout(() => {
+            globalRefocus();
+        }, 10);
+        return;
+    }
+    const currentLeafIdx = leafOrder.findIndex((leafEntry) => leafEntry.nodeid === focusedNode.id);
+    const nextLeafIdx = currentLeafIdx === -1 ? 0 : (currentLeafIdx + offset + leafOrder.length) % leafOrder.length;
+    layoutModel.focusNode(leafOrder[nextLeafIdx].nodeid);
+    setTimeout(() => {
+        globalRefocus();
+    }, 10);
+}
+
 function switchBlockInDirection(direction: NavigateDirection) {
     const layoutModel = getLayoutModelForStaticTab();
     const focusType = FocusManager.getInstance().getFocusType();
@@ -545,35 +570,35 @@ function countTermBlocks(): number {
 
 function registerGlobalKeys() {
     globalKeyMap.set("Cmd:]", () => {
-        switchTab(1);
+        cycleBlockFocus(1);
         return true;
     });
     globalKeyMap.set("Cmd:c{BracketRight}", () => {
-        switchTab(1);
+        cycleBlockFocus(1);
         return true;
     });
     globalKeyMap.set("Shift:Cmd:]", () => {
-        switchTab(1);
+        cycleBlockFocus(1);
         return true;
     });
     globalKeyMap.set("Shift:Cmd:c{BracketRight}", () => {
-        switchTab(1);
+        cycleBlockFocus(1);
         return true;
     });
     globalKeyMap.set("Cmd:[", () => {
-        switchTab(-1);
+        cycleBlockFocus(-1);
         return true;
     });
     globalKeyMap.set("Cmd:c{BracketLeft}", () => {
-        switchTab(-1);
+        cycleBlockFocus(-1);
         return true;
     });
     globalKeyMap.set("Shift:Cmd:[", () => {
-        switchTab(-1);
+        cycleBlockFocus(-1);
         return true;
     });
     globalKeyMap.set("Shift:Cmd:c{BracketLeft}", () => {
-        switchTab(-1);
+        cycleBlockFocus(-1);
         return true;
     });
     globalKeyMap.set("Cmd:n", () => {
