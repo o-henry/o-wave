@@ -48,15 +48,7 @@
         .add-tab-icon {
             width: 14px;
             height: 14px;
-            background-color: #fff;
-            -webkit-mask-image: url("/add_.svg");
-            mask-image: url("/add_.svg");
-            -webkit-mask-repeat: no-repeat;
-            mask-repeat: no-repeat;
-            -webkit-mask-position: center;
-            mask-position: center;
-            -webkit-mask-size: contain;
-            mask-size: contain;
+            display: block;
             opacity: 0.92;
         }
     }

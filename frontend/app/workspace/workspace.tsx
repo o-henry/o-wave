@@ -147,7 +147,7 @@ const WorkspaceElem = memo(() => {
                                         ref={aiPanelWrapperRef}
                                         className={`w-full h-full pr-0.5 ${aiPanelVisible ? "" : "opacity-0"}`}
                                     >
-                                        {tabId !== "" && <AIPanel roundTopLeft={showLeftTabBar} />}
+                                        {tabId !== "" && aiPanelVisible && <AIPanel roundTopLeft={showLeftTabBar} />}
                                     </div>
                                 </Panel>
                             </PanelGroup>

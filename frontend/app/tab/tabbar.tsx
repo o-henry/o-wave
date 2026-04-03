@@ -613,7 +613,21 @@ const TabBar = memo(({ workspace, noTabs }: TabBarProps) => {
                 style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
                 onClick={handleAddTab}
             >
-                <span className="add-tab-icon" aria-hidden="true" />
+                <span
+                    className="add-tab-icon"
+                    aria-hidden="true"
+                    style={{
+                        backgroundColor: "#fff",
+                        WebkitMaskImage: 'url("box-2-svgrepo-com.svg")',
+                        maskImage: 'url("box-2-svgrepo-com.svg")',
+                        WebkitMaskRepeat: "no-repeat",
+                        maskRepeat: "no-repeat",
+                        WebkitMaskPosition: "center",
+                        maskPosition: "center",
+                        WebkitMaskSize: "contain",
+                        maskSize: "contain",
+                    }}
+                />
             </button>
             <div className="flex-1" />
             <div ref={rightContainerRef} className="flex flex-row gap-1 items-end">

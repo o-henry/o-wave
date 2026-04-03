@@ -38,8 +38,8 @@ export function TabBadges({ badges, flagColor, className }: TabBadgesProps) {
                     className="h-[10px] w-[10px]"
                     style={{
                         backgroundColor: firstBadge.color || "#fbbf24",
-                        WebkitMaskImage: 'url("/yellow-circle.svg")',
-                        maskImage: 'url("/yellow-circle.svg")',
+                        WebkitMaskImage: 'url("yellow-circle.svg")',
+                        maskImage: 'url("yellow-circle.svg")',
                         WebkitMaskRepeat: "no-repeat",
                         maskRepeat: "no-repeat",
                         WebkitMaskPosition: "center",

@@ -363,8 +363,8 @@ const BlockFrame_Header = ({
                         className="h-3 w-3 shrink-0"
                         style={{
                             backgroundColor: badge.color || "#fbbf24",
-                            WebkitMaskImage: 'url("/yellow-circle.svg")',
-                            maskImage: 'url("/yellow-circle.svg")',
+                            WebkitMaskImage: 'url("yellow-circle.svg")',
+                            maskImage: 'url("yellow-circle.svg")',
                             WebkitMaskRepeat: "no-repeat",
                             maskRepeat: "no-repeat",
                             WebkitMaskPosition: "center",

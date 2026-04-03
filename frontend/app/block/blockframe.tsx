@@ -5,7 +5,6 @@ import { BlockModel } from "@/app/block/block-model";
 import { BlockFrame_Header } from "@/app/block/blockframe-header";
 import { blockViewToIcon, getViewIconElem, useTabBackground } from "@/app/block/blockutil";
 import { ConnStatusOverlay } from "@/app/block/connstatusoverlay";
-import { ChangeConnectionBlockModal } from "@/app/modals/conntypeahead";
 import { getBlockComponentModel, globalStore, useBlockAtom } from "@/app/store/global";
 import { useTabModel } from "@/app/store/tab-model";
 import { TabRpcClient } from "@/app/store/wshrpcutil";
@@ -103,7 +102,6 @@ const BlockFrame_Default_Component = (props: BlockFrameProps) => {
     const changeConnModalAtom = useBlockAtom(nodeModel.blockId, "changeConn", () => {
         return jotai.atom(false);
     }) as jotai.PrimitiveAtom<boolean>;
-    const connModalOpen = jotai.useAtomValue(changeConnModalAtom);
     const isMagnified = jotai.useAtomValue(nodeModel.isMagnified);
     const isEphemeral = jotai.useAtomValue(nodeModel.isEphemeral);
     const [magnifiedBlockBlurAtom] = React.useState(() =>
@@ -199,16 +197,6 @@ const BlockFrame_Default_Component = (props: BlockFrameProps) => {
                 {noHeader || <ErrorBoundary fallback={headerElemNoView}>{headerElem}</ErrorBoundary>}
                 {preview ? previewElem : children}
             </div>
-            {preview || viewModel == null || !connModalOpen ? null : (
-                <ChangeConnectionBlockModal
-                    blockId={nodeModel.blockId}
-                    nodeModel={nodeModel}
-                    viewModel={viewModel}
-                    blockRef={blockModel?.blockRef}
-                    changeConnModalAtom={changeConnModalAtom}
-                    connBtnRef={connBtnRef}
-                />
-            )}
         </div>
     );
 };

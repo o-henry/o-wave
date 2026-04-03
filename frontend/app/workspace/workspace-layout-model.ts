@@ -157,13 +157,10 @@ class WorkspaceLayoutModel {
 
     private initializeFromMeta(): void {
         try {
-            const savedVisible = globalStore.get(this.getPanelOpenAtom());
             const savedAIWidth = globalStore.get(this.getPanelWidthAtom());
             const savedVTabWidth = globalStore.get(this.getVTabBarWidthAtom());
-            if (savedVisible != null) {
-                this.aiPanelVisible = savedVisible;
-                globalStore.set(this.panelVisibleAtom, savedVisible);
-            }
+            this.aiPanelVisible = false;
+            globalStore.set(this.panelVisibleAtom, false);
             if (savedAIWidth != null) {
                 this.aiPanelWidth = savedAIWidth;
             }

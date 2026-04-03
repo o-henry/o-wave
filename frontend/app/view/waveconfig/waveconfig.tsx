@@ -190,8 +190,8 @@ const WaveConfigView = memo(({ blockId, model }: ViewComponentProps<WaveConfigVi
                                             className="block h-3.5 w-3.5"
                                             style={{
                                                 backgroundColor: "currentColor",
-                                                WebkitMaskImage: 'url("/box-2-svgrepo-com.svg")',
-                                                maskImage: 'url("/box-2-svgrepo-com.svg")',
+                                                WebkitMaskImage: 'url("box-2-svgrepo-com.svg")',
+                                                maskImage: 'url("box-2-svgrepo-com.svg")',
                                                 WebkitMaskRepeat: "no-repeat",
                                                 maskRepeat: "no-repeat",
                                                 WebkitMaskPosition: "center",
@@ -218,8 +218,8 @@ const WaveConfigView = memo(({ blockId, model }: ViewComponentProps<WaveConfigVi
                                                     className="block h-3.5 w-3.5"
                                                     style={{
                                                         backgroundColor: "currentColor",
-                                                        WebkitMaskImage: 'url("/box-2-svgrepo-com.svg")',
-                                                        maskImage: 'url("/box-2-svgrepo-com.svg")',
+                                                        WebkitMaskImage: 'url("box-2-svgrepo-com.svg")',
+                                                        maskImage: 'url("box-2-svgrepo-com.svg")',
                                                         WebkitMaskRepeat: "no-repeat",
                                                         maskRepeat: "no-repeat",
                                                         WebkitMaskPosition: "center",

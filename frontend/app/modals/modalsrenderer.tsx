@@ -13,6 +13,8 @@ import { useEffect } from "react";
 import * as semver from "semver";
 import { getModalComponent } from "./modalregistry";
 
+const SHOW_ONBOARDING_MODALS = false;
+
 const ModalsRenderer = () => {
     const clientData = jotai.useAtomValue(ClientModel.getInstance().clientAtom);
     const [newInstallOnboardingOpen, setNewInstallOnboardingOpen] = jotai.useAtom(modalsModel.newInstallOnboardingOpen);
@@ -25,19 +27,27 @@ const ModalsRenderer = () => {
             rtn.push(<ModalComponent key={modal.displayName} {...modal.props} />);
         }
     }
-    if (newInstallOnboardingOpen) {
+    if (SHOW_ONBOARDING_MODALS && newInstallOnboardingOpen) {
         rtn.push(<NewInstallOnboardingModal key={NewInstallOnboardingModal.displayName} />);
     }
-    if (upgradeOnboardingOpen) {
+    if (SHOW_ONBOARDING_MODALS && upgradeOnboardingOpen) {
         rtn.push(<UpgradeOnboardingModal key={UpgradeOnboardingModal.displayName} />);
     }
     useEffect(() => {
+        if (!SHOW_ONBOARDING_MODALS) {
+            setNewInstallOnboardingOpen(false);
+            return;
+        }
         if (!clientData.tosagreed) {
             setNewInstallOnboardingOpen(true);
         }
-    }, [clientData]);
+    }, [clientData, setNewInstallOnboardingOpen]);
 
     useEffect(() => {
+        if (!SHOW_ONBOARDING_MODALS) {
+            setUpgradeOnboardingOpen(false);
+            return;
+        }
         if (!globalPrimaryTabStartup) {
             return;
         }
@@ -48,7 +58,7 @@ const ModalsRenderer = () => {
         if (semver.lt(lastVersion, CurrentOnboardingVersion)) {
             setUpgradeOnboardingOpen(true);
         }
-    }, []);
+    }, [clientData, setUpgradeOnboardingOpen]);
     useEffect(() => {
         globalStore.set(atoms.modalOpen, rtn.length > 0);
     }, [rtn]);

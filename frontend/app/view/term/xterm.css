@@ -110,6 +110,8 @@
     position: absolute;
     left: 0;
     top: 0;
+    padding-left: 4px;
+    box-sizing: border-box;
 }
 
 .xterm-char-measure-element {

@@ -401,8 +401,8 @@ export function VTabBar({ workspace, className }: VTabBarProps) {
                     className="h-3.5 w-3.5 shrink-0 opacity-90"
                     style={{
                         backgroundColor: "#fff",
-                        WebkitMaskImage: 'url("/add_.svg")',
-                        maskImage: 'url("/add_.svg")',
+                        WebkitMaskImage: 'url("box-2-svgrepo-com.svg")',
+                        maskImage: 'url("box-2-svgrepo-com.svg")',
                         WebkitMaskRepeat: "no-repeat",
                         maskRepeat: "no-repeat",
                         WebkitMaskPosition: "center",

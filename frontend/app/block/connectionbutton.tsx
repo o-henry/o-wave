@@ -19,8 +19,8 @@ interface ConnectionButtonProps {
 
 const terminalMaskIconStyle: React.CSSProperties = {
     backgroundColor: "#fff",
-    WebkitMaskImage: 'url("/connection-terminal.svg")',
-    maskImage: 'url("/connection-terminal.svg")',
+    WebkitMaskImage: 'url("workspace-icons/terminal.svg")',
+    maskImage: 'url("workspace-icons/terminal.svg")',
     WebkitMaskRepeat: "no-repeat",
     maskRepeat: "no-repeat",
     WebkitMaskPosition: "center",
@@ -153,8 +153,8 @@ export const ConnectionButton = React.memo(
                                 style={{
                                     ...terminalMaskIconStyle,
                                     backgroundColor: color,
-                                    WebkitMaskImage: 'url("/xmark.svg")',
-                                    maskImage: 'url("/xmark.svg")',
+                                    WebkitMaskImage: 'url("xmark.svg")',
+                                    maskImage: 'url("xmark.svg")',
                                     width: "11px",
                                     height: "11px",
                                     minWidth: "11px",

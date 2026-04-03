@@ -3,15 +3,15 @@ import clsx from "clsx";
 import { CSSProperties, HTMLAttributes, memo } from "react";
 
 const workspaceSvgIcons: Record<string, string> = {
-    "workspace@add": "/workspace-icons/add_.svg",
-    "workspace@box-outer-light-dashed-all": "/workspace-icons/box-outer-light-dashed-all.svg",
-    "workspace@box-2": "/workspace-icons/box-2.svg",
-    "workspace@box": "/workspace-icons/box.svg",
-    "workspace@chart": "/workspace-icons/chart.svg",
-    "workspace@circle": "/workspace-icons/circle.svg",
-    "workspace@terminal": "/workspace-icons/terminal.svg",
-    "workspace@web": "/workspace-icons/web.svg",
-    "workspace@terminal-alt": "/workspace-icons/terminal-alt.svg",
+    "workspace@add": "workspace-icons/add_.svg",
+    "workspace@box-outer-light-dashed-all": "workspace-icons/box-outer-light-dashed-all.svg",
+    "workspace@box-2": "workspace-icons/box-2.svg",
+    "workspace@box": "workspace-icons/box.svg",
+    "workspace@chart": "workspace-icons/chart.svg",
+    "workspace@circle": "workspace-icons/circle.svg",
+    "workspace@terminal": "workspace-icons/terminal.svg",
+    "workspace@web": "workspace-icons/web.svg",
+    "workspace@terminal-alt": "workspace-icons/terminal-alt.svg",
 };
 
 type WorkspaceIconProps = {

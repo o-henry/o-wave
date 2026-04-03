@@ -30,15 +30,5 @@
                 "view": "web"
             }
         }
-    },
-    "defwidget@sysinfo": {
-        "display:order": -2,
-        "icon": "chart-line",
-        "label": "sysinfo",
-        "blockdef": {
-            "meta": {
-                "view": "sysinfo"
-            }
-        }
     }
 }
