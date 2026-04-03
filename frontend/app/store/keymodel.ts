@@ -548,7 +548,15 @@ function registerGlobalKeys() {
         switchTab(1);
         return true;
     });
+    globalKeyMap.set("Cmd:c{BracketRight}", () => {
+        switchTab(1);
+        return true;
+    });
     globalKeyMap.set("Shift:Cmd:]", () => {
+        switchTab(1);
+        return true;
+    });
+    globalKeyMap.set("Shift:Cmd:c{BracketRight}", () => {
         switchTab(1);
         return true;
     });
@@ -556,7 +564,15 @@ function registerGlobalKeys() {
         switchTab(-1);
         return true;
     });
+    globalKeyMap.set("Cmd:c{BracketLeft}", () => {
+        switchTab(-1);
+        return true;
+    });
     globalKeyMap.set("Shift:Cmd:[", () => {
+        switchTab(-1);
+        return true;
+    });
+    globalKeyMap.set("Shift:Cmd:c{BracketLeft}", () => {
         switchTab(-1);
         return true;
     });

@@ -169,16 +169,6 @@ function getTipsShortcutItems(): { label: string; shortcut: string; note?: strin
     ];
 }
 
-function getConfigItems(isWindows: boolean): { name: string; file: string; description?: string }[] {
-    return [
-        { name: "GENERAL", file: "settings.json", description: "Global preferences" },
-        { name: "CONNECTIONS", file: "connections.json", description: isWindows ? "SSH hosts and WSL distros" : "SSH hosts" },
-        { name: "SIDEBAR WIDGETS", file: "widgets.json", description: "Customize command center shortcuts" },
-        { name: "TAB BACKGROUNDS", file: "backgrounds.json", description: "Background presets" },
-        { name: "SECRETS", file: "secrets", description: "Secure secret storage" },
-    ];
-}
-
 function SettingsTooltipContent({ hasConfigErrors }: { hasConfigErrors: boolean }) {
     if (!hasConfigErrors) {
         return "Settings & Help";
@@ -349,8 +339,6 @@ const SettingsFloatingWindow = memo(
 
         const tipsShortcutItems = getTipsShortcutItems();
         const mergedShortcutItems = [...shortcutItems, ...tipsShortcutItems];
-        const configItems = getConfigItems(env.isWindows?.() ?? false);
-
         const handleOpenBackgroundPicker = useCallback(() => {
             fileInputRef.current?.click();
         }, []);
@@ -380,7 +368,7 @@ const SettingsFloatingWindow = memo(
         const handleBackgroundFileChange = useCallback(
             (event: ChangeEvent<HTMLInputElement>) => {
                 const file = event.target.files?.[0];
-                const nextPath = file ? window.api.getPathForFile(file) : "";
+                const nextPath = file ? ((window as Window & { api?: ElectronApi }).api?.getPathForFile(file) ?? "") : "";
                 if (!isBlank(nextPath)) {
                     fireAndForget(() =>
                         env.rpc.SetConfigCommand(TabRpcClient, { "window:bgimagepath": nextPath } as SettingsType)
@@ -421,8 +409,8 @@ const SettingsFloatingWindow = memo(
                                     className="h-3.5 w-3.5"
                                     style={{
                                         backgroundColor: "currentColor",
-                                        WebkitMaskImage: 'url("/xmark.svg")',
-                                        maskImage: 'url("/xmark.svg")',
+                                        WebkitMaskImage: 'url("xmark.svg")',
+                                        maskImage: 'url("xmark.svg")',
                                         WebkitMaskRepeat: "no-repeat",
                                         maskRepeat: "no-repeat",
                                         WebkitMaskPosition: "center",
@@ -485,39 +473,6 @@ const SettingsFloatingWindow = memo(
                             )}
 
                             <div className="mt-5 py-4">
-                                <div className="mb-3 text-[10px] tracking-[0.16em] text-[#8e877f]">WAVE CONFIG</div>
-                                <div className="space-y-0 border-t border-white/8">
-                                    {configItems.map((item) => (
-                                        <button
-                                            key={item.file}
-                                            type="button"
-                                            className="flex w-full items-center gap-4 border-b border-white/8 py-3 text-left transition-colors hover:bg-white/[0.03]"
-                                            onClick={() => {
-                                                const blockDef: BlockDef = {
-                                                    meta: {
-                                                        view: "waveconfig",
-                                                        file: item.file,
-                                                    },
-                                                };
-                                                env.createBlock(blockDef, false, true);
-                                                onClose();
-                                            }}
-                                        >
-                                            <div className="min-w-0 flex-1">
-                                                <div className="text-[13px] text-[#f2eee8]">{item.name}</div>
-                                                {item.description ? (
-                                                    <div className="mt-1 text-[11px] text-[#8e877f] uppercase">
-                                                        {item.description}
-                                                    </div>
-                                                ) : null}
-                                            </div>
-                                            <div className="text-[10px] tracking-[0.14em] text-[#79c0ff]">OPEN</div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="mt-5 py-4">
                                 <div className="mb-3 text-[10px] tracking-[0.16em] text-[#8e877f]">WINDOW BACKGROUND</div>
                                 <div className="border-t border-white/8">
                                     <div className="border-b border-white/8 px-0 py-3">
@@ -571,7 +526,7 @@ const SettingsFloatingWindow = memo(
                                                     max="100"
                                                     step="1"
                                                     value={bgOpacityInput}
-                                                    className="wave-opacity-input w-[62px] border border-white/10 bg-[#151618] px-2 py-1.5 text-right text-[12px] text-[#f2eee8] outline-none transition-colors focus:border-[#79c0ff]"
+                                                    className="wave-opacity-input w-[46px] border-0 border-b border-white/20 bg-transparent px-0 py-1 text-right text-[12px] text-[#f2eee8] outline-none transition-colors focus:border-[#79c0ff]"
                                                     onChange={handleBackgroundOpacityChange}
                                                     onBlur={(event) => commitBackgroundOpacity(event.target.value)}
                                                     onKeyDown={(event) => {
@@ -595,6 +550,8 @@ const SettingsFloatingWindow = memo(
                             .wave-opacity-input {
                                 appearance: textfield;
                                 -moz-appearance: textfield;
+                                border-radius: 0;
+                                box-shadow: none;
                             }
 
                             .wave-opacity-input::-webkit-outer-spin-button,
