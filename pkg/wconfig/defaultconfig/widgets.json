@@ -30,5 +30,26 @@
                 "view": "web"
             }
         }
+    },
+    "defwidget@sysinfo": {
+        "display:order": -2,
+        "icon": "chart-line",
+        "label": "cpu usage",
+        "blockdef": {
+            "meta": {
+                "view": "sysinfo",
+                "sysinfo:type": "CPU + Mem"
+            }
+        }
+    },
+    "defwidget@processviewer": {
+        "display:order": -1,
+        "icon": "microchip",
+        "label": "processes",
+        "blockdef": {
+            "meta": {
+                "view": "processviewer"
+            }
+        }
     }
 }

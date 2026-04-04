@@ -40,7 +40,7 @@ import { boundNumber, fireAndForget, stringToBase64 } from "@/util/util";
 import * as jotai from "jotai";
 import * as React from "react";
 import { getBlockingCommand } from "./shellblocking";
-import { computeTheme, DefaultTermTheme } from "./termutil";
+import { computeTheme, computeThemeChromeVars, DefaultTermTheme, isThemeBackgroundLight } from "./termutil";
 import { TermWrap, WebGLSupported } from "./termwrap";
 
 export class TermViewModel implements ViewModel {
@@ -242,7 +242,14 @@ export class TermViewModel implements ViewModel {
         });
         this.termTransparencyAtom = useBlockAtom(blockId, "termtransparencyatom", () => {
             return jotai.atom<number>((get) => {
-                const value = get(getOverrideConfigAtom(this.blockId, "term:transparency")) ?? 0.5;
+                const configuredValue = get(getOverrideConfigAtom(this.blockId, "term:transparency"));
+                if (configuredValue != null) {
+                    return boundNumber(configuredValue, 0, 1);
+                }
+                const fullConfig = get(atoms.fullConfigAtom);
+                const themeName = get(this.termThemeNameAtom);
+                const theme = fullConfig?.termthemes?.[themeName] ?? fullConfig?.termthemes?.[DefaultTermTheme];
+                const value = isThemeBackgroundLight(theme?.background) ? 0 : 0.5;
                 return boundNumber(value, 0, 1);
             });
         });
@@ -251,8 +258,9 @@ export class TermViewModel implements ViewModel {
             const themeName = get(this.termThemeNameAtom);
             const termTransparency = get(this.termTransparencyAtom);
             const [_, bgcolor] = computeTheme(fullConfig, themeName, termTransparency);
+            const chromeVars = computeThemeChromeVars(fullConfig, themeName, termTransparency);
             if (bgcolor != null) {
-                return { bg: bgcolor };
+                return { bg: bgcolor, ...chromeVars };
             }
             return null;
         });
@@ -475,7 +483,7 @@ export class TermViewModel implements ViewModel {
         return {
             elemtype: "iconbutton",
             icon: "microchip",
-            iconColor: "var(--secondary-text-color)",
+            iconColor: "var(--term-header-icon, var(--secondary-text-color))",
             title: "WebGL disabled (click to enable)",
             click: () => this.toggleWebGl(),
         };

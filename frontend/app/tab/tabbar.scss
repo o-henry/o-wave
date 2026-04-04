@@ -12,7 +12,9 @@
     -webkit-app-region: drag;
     height: max(33px, calc(33px * var(--zoomfactor-inv)));
     backdrop-filter: blur(20px);
-    background: rgba(0, 0, 0, 0.35);
+    background: var(--term-header-bg, rgba(0, 0, 0, 0.35));
+    color: var(--term-header-fg, var(--main-text-color));
+    border-bottom: 1px solid var(--term-header-border, var(--border-color));
     flex-shrink: 0;
 
     button {
@@ -44,12 +46,19 @@
         padding: 0 10px;
         height: 27px;
         margin-bottom: 2.25px;
+        color: var(--term-header-icon, var(--secondary-text-color));
+
+        &:hover {
+            color: var(--term-header-icon-active, var(--main-text-color));
+            background: var(--term-header-hover-bg, var(--highlight-bg-color));
+        }
 
         .add-tab-icon {
             width: 14px;
             height: 14px;
             display: block;
             opacity: 0.92;
+            background-color: currentColor;
         }
     }
 

@@ -4,6 +4,7 @@
 import { AIPanel } from "@/app/aipanel/aipanel";
 import { ErrorBoundary } from "@/app/element/errorboundary";
 import { CenteredDiv } from "@/app/element/quickelems";
+import { computeThemeChromeVars, DefaultTermTheme } from "@/app/view/term/termutil";
 import { ModalsRenderer } from "@/app/modals/modalsrenderer";
 import { TabBar } from "@/app/tab/tabbar";
 import { TabContent } from "@/app/tab/tabcontent";
@@ -31,7 +32,8 @@ const MacOSTabBarSpacer = memo(() => {
                     height: "calc(8px * var(--zoomfactor-inv))",
                     WebkitAppRegion: "drag",
                     backdropFilter: "blur(20px)",
-                    background: "rgba(0, 0, 0, 0.35)",
+                    background: "var(--term-header-bg, rgba(0, 0, 0, 0.35))",
+                    borderBottom: "1px solid var(--term-header-border, var(--border-color))",
                 } as React.CSSProperties
             }
         />
@@ -43,7 +45,9 @@ const WorkspaceElem = memo(() => {
     const workspaceLayoutModel = WorkspaceLayoutModel.getInstance();
     const tabId = useAtomValue(atoms.staticTabId);
     const ws = useAtomValue(atoms.workspace);
+    const fullConfig = useAtomValue(atoms.fullConfigAtom);
     const tabBarPosition = useAtomValue(getSettingsKeyAtom("app:tabbar")) ?? "top";
+    const termThemeName = useAtomValue(getSettingsKeyAtom("term:theme")) ?? DefaultTermTheme;
     const showLeftTabBar = tabBarPosition === "left";
     const aiPanelVisible = useAtomValue(workspaceLayoutModel.panelVisibleAtom);
     const widgetsSidebarVisible = useAtomValue(workspaceLayoutModel.widgetsSidebarVisibleAtom);
@@ -106,9 +110,10 @@ const WorkspaceElem = memo(() => {
     const innerHandleClass = `bg-transparent hover:bg-zinc-500/20 transition-colors ${innerHandleVisible ? "w-0.5" : "w-0 pointer-events-none"}`;
     const outerHandleVisible = showLeftTabBar || aiPanelVisible;
     const outerHandleClass = `bg-transparent hover:bg-zinc-500/20 transition-colors ${outerHandleVisible ? "w-0.5" : "w-0 pointer-events-none"}`;
+    const tabChromeVars = computeThemeChromeVars(fullConfig, termThemeName, 0) as React.CSSProperties;
 
     return (
-        <div className="flex flex-col w-full flex-grow overflow-hidden">
+        <div className="flex flex-col w-full flex-grow overflow-hidden" style={tabChromeVars}>
             {!(showLeftTabBar && isMacOS()) && <TabBar key={ws.oid} workspace={ws} noTabs={showLeftTabBar} />}
             {showLeftTabBar && isMacOS() && <MacOSTabBarSpacer />}
             <div ref={panelContainerRef} className="flex flex-row flex-grow overflow-hidden">

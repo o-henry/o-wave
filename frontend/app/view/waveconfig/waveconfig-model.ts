@@ -7,6 +7,7 @@ import type { TabModel } from "@/app/store/tab-model";
 import { makeORef } from "@/app/store/wos";
 import { TabRpcClient } from "@/app/store/wshrpcutil";
 import { SecretsContent } from "@/app/view/waveconfig/secretscontent";
+import { SettingsVisualContent } from "@/app/view/waveconfig/settingsvisual";
 import { WaveConfigView } from "@/app/view/waveconfig/waveconfig";
 import type { WaveConfigEnv } from "@/app/view/waveconfig/waveconfigenv";
 import { base64ToString, stringToBase64 } from "@/util/util";
@@ -50,6 +51,7 @@ function makeConfigFiles(isWindows: boolean): ConfigFile[] {
             language: "json",
             docsUrl: "https://docs.waveterm.dev/config",
             hasJsonView: true,
+            visualComponent: SettingsVisualContent,
         },
         {
             name: "Connections",
@@ -383,6 +385,54 @@ export class WaveConfigViewModel implements ViewModel {
 
     clearValidationError() {
         globalStore.set(this.validationErrorAtom, null);
+    }
+
+    setValidationError(message: string | null) {
+        globalStore.set(this.validationErrorAtom, message);
+    }
+
+    private syncSettingsEditorContent(patch: Partial<SettingsType>) {
+        const currentContent = globalStore.get(this.originalContentAtom) || "{}";
+        let parsedContent: Record<string, any> = {};
+
+        try {
+            const parsed = JSON.parse(currentContent);
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                parsedContent = parsed as Record<string, any>;
+            }
+        } catch {
+            parsedContent = {};
+        }
+
+        for (const [key, value] of Object.entries(patch)) {
+            if (value == null || value === "") {
+                delete parsedContent[key as keyof SettingsType];
+            } else {
+                parsedContent[key as keyof SettingsType] = value as any;
+            }
+        }
+
+        const formattedContent = JSON.stringify(parsedContent, null, 2);
+        globalStore.set(this.fileContentAtom, formattedContent);
+        globalStore.set(this.originalContentAtom, formattedContent);
+        globalStore.set(this.hasEditedAtom, false);
+        globalStore.set(this.validationErrorAtom, null);
+        globalStore.set(this.errorMessageAtom, null);
+    }
+
+    async updateSettingsValues(patch: Partial<SettingsType>) {
+        globalStore.set(this.isSavingAtom, true);
+        globalStore.set(this.errorMessageAtom, null);
+        globalStore.set(this.validationErrorAtom, null);
+
+        try {
+            await this.env.rpc.SetConfigCommand(TabRpcClient, patch);
+            this.syncSettingsEditorContent(patch);
+        } catch (err) {
+            globalStore.set(this.errorMessageAtom, `Failed to update settings: ${err.message || String(err)}`);
+        } finally {
+            globalStore.set(this.isSavingAtom, false);
+        }
     }
 
     async checkStorageBackend() {

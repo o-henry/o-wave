@@ -20,7 +20,7 @@ import {
 } from "@floating-ui/react";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
-import { type ChangeEvent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export type WidgetsEnv = WaveEnvSubset<{
     isDev: WaveEnv["isDev"];
@@ -114,24 +114,75 @@ function calculateGridSize(appCount: number): number {
 }
 
 function getWidgetShortcutLabel(index: number): string {
-    return `CMD+OPT+${index + 4}`;
+    return `CMD+OPT+${index + 6}`;
 }
 
 function getWidgetShortcutMatcher(event: WaveKeyboardEvent, index: number): boolean {
-    const shortcutNumber = index + 4;
+    const shortcutNumber = index + 6;
     if (shortcutNumber > 9) {
         return false;
     }
     return keyutil.checkKeyPressed(event, `Cmd:Option:c{Digit${shortcutNumber}}`);
 }
 
+const quickAccessItems: { label: string; shortcut: string; matcher: (event: WaveKeyboardEvent) => boolean; blockdef: BlockDef }[] = [
+    {
+        label: "Terminal",
+        shortcut: "CMD+OPT+1",
+        matcher: (event) => keyutil.checkKeyPressed(event, "Cmd:Option:c{Digit1}"),
+        blockdef: { meta: { view: "term", controller: "shell" } },
+    },
+    {
+        label: "Files",
+        shortcut: "CMD+OPT+2",
+        matcher: (event) => keyutil.checkKeyPressed(event, "Cmd:Option:c{Digit2}"),
+        blockdef: { meta: { view: "preview", file: "~" } },
+    },
+    {
+        label: "Web",
+        shortcut: "CMD+OPT+3",
+        matcher: (event) => keyutil.checkKeyPressed(event, "Cmd:Option:c{Digit3}"),
+        blockdef: { meta: { view: "web" } },
+    },
+    {
+        label: "CPU Usage",
+        shortcut: "CMD+OPT+4",
+        matcher: (event) => keyutil.checkKeyPressed(event, "Cmd:Option:c{Digit4}"),
+        blockdef: { meta: { view: "sysinfo", "sysinfo:type": "CPU + Mem" } },
+    },
+    {
+        label: "Processes",
+        shortcut: "CMD+OPT+5",
+        matcher: (event) => keyutil.checkKeyPressed(event, "Cmd:Option:c{Digit5}"),
+        blockdef: { meta: { view: "processviewer" } },
+    },
+];
+
+function isBuiltInQuickWidget(widget: WidgetConfigType): boolean {
+    const meta = widget?.blockdef?.meta ?? {};
+    if (meta.view === "term" && meta.controller === "shell") {
+        return true;
+    }
+    if (meta.view === "preview") {
+        return true;
+    }
+    if (meta.view === "web") {
+        return true;
+    }
+    if (meta.view === "sysinfo") {
+        return true;
+    }
+    if (meta.view === "processviewer") {
+        return true;
+    }
+    return false;
+}
+
 function getShortcutItems(widgets: WidgetConfigType[], featureWaveAppBuilder: boolean): { label: string; shortcut: string }[] {
-    const quickItems = [
-        { label: "Terminal", shortcut: "CMD+OPT+1" },
-        { label: "Files", shortcut: "CMD+OPT+2" },
-        { label: "Web", shortcut: "CMD+OPT+3" },
-    ];
-    const widgetItems = widgets.slice(0, 9).map((widget, index) => ({
+    const widgetItems = widgets
+        .filter((widget) => !isBuiltInQuickWidget(widget))
+        .slice(0, 4)
+        .map((widget, index) => ({
         label: widget.label || widget.description || `Widget ${index + 1}`,
         shortcut: getWidgetShortcutLabel(index),
     }));
@@ -140,7 +191,11 @@ function getShortcutItems(widgets: WidgetConfigType[], featureWaveAppBuilder: bo
         { label: "Settings", shortcut: "CMD+," },
         { label: "Workspace Sidebar", shortcut: "CMD+\\" },
     ];
-    return [...quickItems, ...widgetItems, ...extraItems];
+    return [
+        ...quickAccessItems.map(({ label, shortcut }) => ({ label, shortcut })),
+        ...widgetItems,
+        ...extraItems,
+    ];
 }
 
 function getTipsShortcutItems(): { label: string; shortcut: string; note?: string }[] {
@@ -167,6 +222,44 @@ function getTipsShortcutItems(): { label: string; shortcut: string; note?: strin
         { label: "Web View", shortcut: "TIP", note: "Use the gear in web view to set your homepage" },
         { label: "Terminal", shortcut: "TIP", note: "Use the gear in terminal to set theme and font size" },
     ];
+}
+
+const commonMonospaceFonts = [
+    "DM Mono Nerd Font",
+    "JetBrains Mono",
+    "Menlo",
+    "SF Mono",
+    "Monaco",
+    "Consolas",
+    "Fira Code",
+    "Cascadia Code",
+    "Hack",
+    "Iosevka",
+];
+
+type InstalledFontOption = {
+    family: string;
+    searchText: string;
+};
+
+const fontPreviewText = "AaBb 0OoIl1 [] {} => ~/src/main.ts";
+let fontMeasureContext: CanvasRenderingContext2D | null = null;
+
+function getFontMeasureContext(): CanvasRenderingContext2D | null {
+    if (typeof document === "undefined") {
+        return null;
+    }
+    if (fontMeasureContext) {
+        return fontMeasureContext;
+    }
+    const canvas = document.createElement("canvas");
+    fontMeasureContext = canvas.getContext("2d");
+    return fontMeasureContext;
+}
+
+function makeFontPreviewFamily(fontName: string): string {
+    const escapedFontName = fontName.replace(/"/g, '\\"');
+    return `"${escapedFontName}", "DM Mono Nerd Font", monospace`;
 }
 
 function SettingsTooltipContent({ hasConfigErrors }: { hasConfigErrors: boolean }) {
@@ -331,31 +424,151 @@ const SettingsFloatingWindow = memo(
         const fileInputRef = useRef<HTMLInputElement>(null);
         const bgImagePath = fullConfig?.settings?.["window:bgimagepath"] ?? "";
         const bgImageOpacity = fullConfig?.settings?.["window:bgimageopacity"] ?? 0.22;
+        const termTheme = fullConfig?.settings?.["term:theme"] ?? "";
+        const termFontSize = fullConfig?.settings?.["term:fontsize"];
+        const termFontFamily = fullConfig?.settings?.["term:fontfamily"] ?? "";
+        const termThemes = fullConfig?.termthemes ?? {};
         const [bgOpacityInput, setBgOpacityInput] = useState(() => `${Math.round(bgImageOpacity * 100)}`);
+        const [fontSizeInput, setFontSizeInput] = useState(() => (termFontSize == null ? "" : `${termFontSize}`));
+        const [fontFamilyInput, setFontFamilyInput] = useState(termFontFamily);
+        const [fontBrowserOpen, setFontBrowserOpen] = useState(false);
+        const [fontSearchInput, setFontSearchInput] = useState("");
+        const [installedFontOptions, setInstalledFontOptions] = useState<InstalledFontOption[]>([]);
+        const [fontsLoading, setFontsLoading] = useState(false);
+        const [fontSourceState, setFontSourceState] = useState<"unknown" | "ready" | "unsupported" | "error">("unknown");
 
         useEffect(() => {
             setBgOpacityInput(`${Math.round(bgImageOpacity * 100)}`);
         }, [bgImageOpacity]);
 
+        useEffect(() => {
+            setFontSizeInput(termFontSize == null ? "" : `${termFontSize}`);
+        }, [termFontSize]);
+
+        useEffect(() => {
+            setFontFamilyInput(termFontFamily);
+        }, [termFontFamily]);
+
+        useEffect(() => {
+            if (!isOpen) {
+                return;
+            }
+            let cancelled = false;
+            const loadInstalledFonts = async () => {
+                const queryLocalFonts = (
+                    window as Window & {
+                        queryLocalFonts?: () => Promise<
+                            Array<{ family?: string; fullName?: string; postscriptName?: string }>
+                        >;
+                    }
+                ).queryLocalFonts;
+                if (typeof queryLocalFonts !== "function") {
+                    if (!cancelled) {
+                        setInstalledFontOptions([]);
+                        setFontSourceState("unsupported");
+                    }
+                    return;
+                }
+                setFontsLoading(true);
+                try {
+                    const localFonts = await queryLocalFonts();
+                    if (cancelled) {
+                        return;
+                    }
+                    const fontMap = new Map<string, InstalledFontOption>();
+                    localFonts.forEach((font) => {
+                        const family = font.family?.trim();
+                        if (isBlank(family)) {
+                            return;
+                        }
+                        const searchParts = [family, font.fullName?.trim(), font.postscriptName?.trim()].filter(
+                            (part): part is string => !isBlank(part)
+                        );
+                        const existing = fontMap.get(family);
+                        if (existing) {
+                            existing.searchText = `${existing.searchText} ${searchParts.join(" ")}`.toLowerCase();
+                            return;
+                        }
+                        fontMap.set(family, {
+                            family,
+                            searchText: searchParts.join(" ").toLowerCase(),
+                        });
+                    });
+                    const installedFonts = Array.from(fontMap.values()).sort((a, b) => a.family.localeCompare(b.family));
+                    setInstalledFontOptions(installedFonts);
+                    setFontSourceState("ready");
+                } catch (error) {
+                    if (cancelled) {
+                        return;
+                    }
+                    console.error("Failed to query local fonts", error);
+                    setInstalledFontOptions([]);
+                    setFontSourceState("error");
+                } finally {
+                    if (!cancelled) {
+                        setFontsLoading(false);
+                    }
+                }
+            };
+            loadInstalledFonts();
+            return () => {
+                cancelled = true;
+            };
+        }, [isOpen]);
+
         const tipsShortcutItems = getTipsShortcutItems();
         const mergedShortcutItems = [...shortcutItems, ...tipsShortcutItems];
+        const sortedTermThemes = Object.entries(termThemes).sort(([, themeA], [, themeB]) => {
+            return (themeA["display:order"] ?? 0) - (themeB["display:order"] ?? 0);
+        });
+        const visibleFontOptions = useMemo(() => {
+            const searchQuery = fontSearchInput.trim().toLowerCase();
+            const mergedFonts = new Map<string, { fontName: string; isInstalled: boolean; searchText: string }>();
+            [termFontFamily, fontFamilyInput, ...commonMonospaceFonts]
+                .filter((fontName): fontName is string => !isBlank(fontName))
+                .forEach((fontName) => {
+                    mergedFonts.set(fontName, {
+                        fontName,
+                        isInstalled: false,
+                        searchText: fontName.toLowerCase(),
+                    });
+                });
+            installedFontOptions.forEach((font) => {
+                mergedFonts.set(font.family, {
+                    fontName: font.family,
+                    isInstalled: true,
+                    searchText: font.searchText,
+                });
+            });
+            return Array.from(mergedFonts.values())
+                .filter((font) => (searchQuery === "" ? true : font.searchText.includes(searchQuery)))
+                .sort((a, b) => {
+                    if (a.isInstalled !== b.isInstalled) {
+                        return a.isInstalled ? -1 : 1;
+                    }
+                    return a.fontName.localeCompare(b.fontName);
+                })
+                .map((font) => font.fontName);
+        }, [fontFamilyInput, fontSearchInput, installedFontOptions, termFontFamily]);
         const handleOpenBackgroundPicker = useCallback(() => {
             fileInputRef.current?.click();
         }, []);
+
+        const updateConfigValue = useCallback(
+            (patch: Partial<SettingsType>) => {
+                fireAndForget(() => env.rpc.SetConfigCommand(TabRpcClient, patch as SettingsType));
+            },
+            [env]
+        );
 
         const commitBackgroundOpacity = useCallback(
             (rawValue: string) => {
                 const parsedValue = Number(rawValue);
                 const boundedValue = Number.isFinite(parsedValue) ? Math.min(Math.max(parsedValue, 0), 100) : 22;
                 setBgOpacityInput(`${boundedValue}`);
-                fireAndForget(() =>
-                    env.rpc.SetConfigCommand(
-                        TabRpcClient,
-                        { "window:bgimageopacity": boundedValue / 100 } as SettingsType
-                    )
-                );
+                updateConfigValue({ "window:bgimageopacity": boundedValue / 100 });
             },
-            [env]
+            [updateConfigValue]
         );
 
         const handleBackgroundOpacityChange = useCallback(
@@ -380,10 +593,42 @@ const SettingsFloatingWindow = memo(
         );
 
         const handleClearBackgroundImage = useCallback(() => {
-            fireAndForget(() =>
-                env.rpc.SetConfigCommand(TabRpcClient, { "window:bgimagepath": null } as unknown as SettingsType)
-            );
-        }, [env]);
+            updateConfigValue({ "window:bgimagepath": null } as unknown as Partial<SettingsType>);
+        }, [updateConfigValue]);
+
+        const commitTermFontSize = useCallback(
+            (rawValue: string) => {
+                const trimmedValue = rawValue.trim();
+                if (trimmedValue === "") {
+                    setFontSizeInput("");
+                    updateConfigValue({ "term:fontsize": null } as unknown as Partial<SettingsType>);
+                    return;
+                }
+                const parsedValue = Number(trimmedValue);
+                const boundedValue = Number.isFinite(parsedValue) ? Math.min(Math.max(Math.round(parsedValue), 6), 18) : 12;
+                setFontSizeInput(`${boundedValue}`);
+                updateConfigValue({ "term:fontsize": boundedValue });
+            },
+            [updateConfigValue]
+        );
+
+        const commitTermFontFamily = useCallback(
+            (rawValue: string) => {
+                const trimmedValue = rawValue.trim();
+                setFontFamilyInput(trimmedValue);
+                updateConfigValue({ "term:fontfamily": trimmedValue === "" ? null : trimmedValue } as Partial<SettingsType>);
+            },
+            [updateConfigValue]
+        );
+
+        const selectTerminalFont = useCallback(
+            (fontName: string) => {
+                setFontFamilyInput(fontName);
+                setFontBrowserOpen(false);
+                commitTermFontFamily(fontName);
+            },
+            [commitTermFontFamily]
+        );
 
         if (!isOpen) return null;
 
@@ -471,6 +716,167 @@ const SettingsFloatingWindow = memo(
                                     </div>
                                 </div>
                             )}
+
+                            <div className="mt-5 py-4">
+                                <div className="mb-3 text-[10px] tracking-[0.16em] text-[#8e877f]">TERMINAL DEFAULTS</div>
+                                <div className="border-t border-white/8">
+                                    <div className="border-b border-white/8 px-0 py-3">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-[13px] text-[#f2eee8]">TERMINAL THEME</div>
+                                                <div className="mt-1 text-[11px] text-[#8e877f] uppercase">
+                                                    Default for new and non-overridden terminals
+                                                </div>
+                                            </div>
+                                            <select
+                                                value={termTheme === "" ? "__default__" : termTheme}
+                                                className="min-w-[180px] border-0 border-b border-white/20 bg-transparent px-0 py-1 text-right text-[12px] text-[#f2eee8] outline-none transition-colors focus:border-[#79c0ff]"
+                                                onChange={(event) =>
+                                                    updateConfigValue({
+                                                        "term:theme":
+                                                            event.target.value === "__default__" ? null : event.target.value,
+                                                    } as Partial<SettingsType>)
+                                                }
+                                            >
+                                                <option value="__default__">Default Dark</option>
+                                                {sortedTermThemes.map(([themeKey, theme]) => (
+                                                    <option key={themeKey} value={themeKey}>
+                                                        {theme["display:name"] ?? themeKey}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-b border-white/8 px-0 py-3">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-[13px] text-[#f2eee8]">TERMINAL FONT SIZE</div>
+                                                <div className="mt-1 text-[11px] text-[#8e877f] uppercase">
+                                                    Leave blank to use 12px
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    min="6"
+                                                    max="18"
+                                                    step="1"
+                                                    value={fontSizeInput}
+                                                    className="wave-opacity-input w-[46px] border-0 border-b border-white/20 bg-transparent px-0 py-1 text-right text-[12px] text-[#f2eee8] outline-none transition-colors focus:border-[#79c0ff]"
+                                                    onChange={(event) => setFontSizeInput(event.target.value)}
+                                                    onBlur={(event) => commitTermFontSize(event.target.value)}
+                                                    onKeyDown={(event) => {
+                                                        if (event.key === "Enter") {
+                                                            commitTermFontSize((event.target as HTMLInputElement).value);
+                                                        }
+                                                    }}
+                                                />
+                                                <div className="text-[11px] tracking-[0.14em] text-[#79c0ff]">PX</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-b border-white/8 px-0 py-3">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-[13px] text-[#f2eee8]">TERMINAL FONT</div>
+                                                <div className="mt-1 text-[11px] text-[#8e877f] uppercase">
+                                                    Installed monospace font family with preview
+                                                </div>
+                                            </div>
+                                            <div className="min-w-[320px] max-w-[420px] flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={fontFamilyInput}
+                                                        placeholder="DM Mono Nerd Font"
+                                                        className="min-w-0 flex-1 border-0 border-b border-white/20 bg-transparent px-0 py-1 text-right text-[12px] text-[#f2eee8] outline-none transition-colors placeholder:text-[#8e877f] focus:border-[#79c0ff]"
+                                                        onChange={(event) => setFontFamilyInput(event.target.value)}
+                                                        onBlur={(event) => commitTermFontFamily(event.target.value)}
+                                                        onKeyDown={(event) => {
+                                                            if (event.key === "Enter") {
+                                                                commitTermFontFamily((event.target as HTMLInputElement).value);
+                                                            }
+                                                        }}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="border border-white/10 px-3 py-1.5 text-[10px] tracking-[0.14em] text-[#79c0ff] transition-colors hover:bg-white/[0.03]"
+                                                        onClick={() => setFontBrowserOpen((open) => !open)}
+                                                    >
+                                                        {fontBrowserOpen ? "HIDE" : "BROWSE"}
+                                                    </button>
+                                                </div>
+                                                {fontBrowserOpen ? (
+                                                    <div className="mt-3 rounded-md border border-white/10 bg-black/20 p-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="text"
+                                                                value={fontSearchInput}
+                                                                placeholder="Filter fonts"
+                                                                className="min-w-0 flex-1 border-0 border-b border-white/15 bg-transparent px-0 py-1 text-[12px] text-[#f2eee8] outline-none transition-colors placeholder:text-[#8e877f] focus:border-[#79c0ff]"
+                                                                onChange={(event) => setFontSearchInput(event.target.value)}
+                                                            />
+                                                                    <div className="text-[10px] tracking-[0.12em] text-[#8e877f]">
+                                                                        {fontsLoading
+                                                                            ? "LOADING"
+                                                                            : fontSourceState === "ready"
+                                                                              ? `${installedFontOptions.length} INSTALLED`
+                                                                              : fontSourceState === "unsupported"
+                                                                                ? "FALLBACK"
+                                                                                : fontSourceState === "error"
+                                                                                  ? "UNAVAILABLE"
+                                                                                  : ""}
+                                                            </div>
+                                                        </div>
+                                                        <div className="mt-2 max-h-56 overflow-y-auto">
+                                                            {visibleFontOptions.length === 0 ? (
+                                                                <div className="py-3 text-[11px] text-[#8e877f] uppercase">
+                                                                    No matching fonts
+                                                                </div>
+                                                            ) : (
+                                                                visibleFontOptions.map((fontName) => {
+                                                                    const isInstalled = installedFontOptions.some(
+                                                                        (font) => font.family === fontName
+                                                                    );
+                                                                    const isSelected = fontFamilyInput === fontName;
+                                                                    return (
+                                                                        <button
+                                                                            key={fontName}
+                                                                            type="button"
+                                                                            className={clsx(
+                                                                                "flex w-full flex-col items-start gap-1 border-b border-white/6 px-0 py-2 text-left transition-colors hover:bg-white/[0.03]",
+                                                                                isSelected && "bg-white/[0.04]"
+                                                                            )}
+                                                                            onClick={() => selectTerminalFont(fontName)}
+                                                                        >
+                                                                            <div className="flex w-full items-center justify-between gap-3">
+                                                                                <div className="min-w-0 truncate normal-case text-[12px] text-[#f2eee8]">
+                                                                                    {fontName}
+                                                                                </div>
+                                                                                <div className="text-[10px] tracking-[0.12em] text-[#8e877f]">
+                                                                                    {isInstalled ? "INSTALLED" : "SUGGESTED"}
+                                                                                </div>
+                                                                            </div>
+                                                                            <div
+                                                                                className="normal-case text-[14px] leading-[1.25] tracking-normal text-[#c5d1df] [font-variant-ligatures:none] [-webkit-font-smoothing:antialiased]"
+                                                                                style={{ fontFamily: makeFontPreviewFamily(fontName) }}
+                                                                            >
+                                                                                {fontPreviewText}
+                                                                            </div>
+                                                                        </button>
+                                                                    );
+                                                                })
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ) : null}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div className="mt-5 py-4">
                                 <div className="mb-3 text-[10px] tracking-[0.16em] text-[#8e877f]">WINDOW BACKGROUND</div>
@@ -580,6 +986,7 @@ const Widgets = memo(() => {
         Object.entries(widgetsMap).filter(([_key, widget]) => shouldIncludeWidgetForWorkspace(widget, workspaceId))
     );
     const widgets = sortByDisplayOrder(filteredWidgets);
+    const shortcutWidgets = widgets.filter((widget) => !isBuiltInQuickWidget(widget));
     const shortcutItems = getShortcutItems(widgets, featureWaveAppBuilder);
 
     const [isAppsOpen, setIsAppsOpen] = useState(false);
@@ -593,13 +1000,18 @@ const Widgets = memo(() => {
                 setIsSettingsOpen(true);
                 return true;
             }
+            const quickAccessItem = quickAccessItems.find((item) => item.matcher(event));
+            if (quickAccessItem != null) {
+                env.createBlock(quickAccessItem.blockdef);
+                return true;
+            }
             if (featureWaveAppBuilder && keyutil.checkKeyPressed(event, "Cmd:Option:a")) {
                 setIsAppsOpen((current) => !current);
                 return true;
             }
-            const widgetIndex = widgets.slice(0, 9).findIndex((_widget, index) => getWidgetShortcutMatcher(event, index));
+            const widgetIndex = shortcutWidgets.slice(0, 4).findIndex((_widget, index) => getWidgetShortcutMatcher(event, index));
             if (widgetIndex !== -1) {
-                handleWidgetSelect(widgets[widgetIndex], env);
+                handleWidgetSelect(shortcutWidgets[widgetIndex], env);
                 return true;
             }
             return false;
@@ -610,7 +1022,7 @@ const Widgets = memo(() => {
             window.removeEventListener("wave:open-settings-shortcuts", openSettings as EventListener);
             window.removeEventListener("keydown", handleShortcut);
         };
-    }, [env, featureWaveAppBuilder, widgets]);
+    }, [env, featureWaveAppBuilder, shortcutWidgets]);
 
     return (
         <>

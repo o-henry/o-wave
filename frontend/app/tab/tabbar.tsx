@@ -567,8 +567,13 @@ const TabBar = memo(({ workspace, noTabs }: TabBarProps) => {
             {showAppMenuButton && (
                 <div
                     ref={appMenuButtonRef}
-                    className="flex items-center justify-center pr-1.5 text-[26px] select-none cursor-pointer text-secondary hover:text-primary"
-                    style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+                    className="flex items-center justify-center pr-1.5 text-[26px] select-none cursor-pointer"
+                    style={
+                        {
+                            WebkitAppRegion: "no-drag",
+                            color: "var(--term-header-icon, var(--secondary-text-color))",
+                        } as React.CSSProperties
+                    }
                     onClick={onEllipsisClick}
                 >
                     <i className="fa fa-ellipsis" />
@@ -609,7 +614,7 @@ const TabBar = memo(({ workspace, noTabs }: TabBarProps) => {
             <button
                 ref={addBtnRef}
                 title="Add Tab"
-                className={`add-tab flex h-[22px] px-2 mb-1 mx-1 items-center rounded-md box-border cursor-pointer hover:bg-hoverbg transition-colors text-[12px] text-secondary hover:text-primary${noTabs ? " invisible" : ""}`}
+                className={`add-tab flex h-[22px] px-2 mb-1 mx-1 items-center rounded-md box-border cursor-pointer transition-colors text-[12px]${noTabs ? " invisible" : ""}`}
                 style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
                 onClick={handleAddTab}
             >
@@ -617,7 +622,6 @@ const TabBar = memo(({ workspace, noTabs }: TabBarProps) => {
                     className="add-tab-icon"
                     aria-hidden="true"
                     style={{
-                        backgroundColor: "#fff",
                         WebkitMaskImage: 'url("box-2-svgrepo-com.svg")',
                         maskImage: 'url("box-2-svgrepo-com.svg")',
                         WebkitMaskRepeat: "no-repeat",

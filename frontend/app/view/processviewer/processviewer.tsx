@@ -75,7 +75,7 @@ export class ProcessViewerViewModel implements ViewModel {
     env: ProcessViewerEnv;
 
     viewIcon = jotai.atom<string>("microchip");
-    viewName = jotai.atom<string>("Processes");
+    viewName = jotai.atom<string>("PROCESSES");
     manageConnection = jotai.atom<boolean>(true);
     filterOutNowsh = jotai.atom<boolean>(true);
     noPadding = jotai.atom<boolean>(true);

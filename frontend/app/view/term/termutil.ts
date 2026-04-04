@@ -22,6 +22,67 @@ function applyTransparencyToColor(hexColor: string, transparency: number): strin
     return colord(hexColor).alpha(alpha).toHex();
 }
 
+function withAlpha(color: string, alpha: number, fallback: string): string {
+    if (color == null) {
+        return fallback;
+    }
+    const parsed = colord(color);
+    if (!parsed.isValid()) {
+        return fallback;
+    }
+    return parsed.alpha(alpha).toRgbString();
+}
+
+function adjustColor(color: string, amount: number, fallback: string): string {
+    if (color == null) {
+        return fallback;
+    }
+    const parsed = colord(color);
+    if (!parsed.isValid()) {
+        return fallback;
+    }
+    const adjusted = amount >= 0 ? parsed.lighten(amount) : parsed.darken(Math.abs(amount));
+    return adjusted.toHex();
+}
+
+export function isThemeBackgroundLight(background: string): boolean {
+    if (background == null) {
+        return false;
+    }
+    const parsed = colord(background);
+    if (!parsed.isValid()) {
+        return false;
+    }
+    return parsed.isLight();
+}
+
+export function computeThemeChromeVars(
+    fullConfig: FullConfigType,
+    themeName: string,
+    termTransparency: number
+): Record<string, string> {
+    const explicitTheme = fullConfig?.termthemes?.[themeName];
+    const fallbackTheme = fullConfig?.termthemes?.[DefaultTermTheme] || ({} as any);
+    const theme = explicitTheme ?? fallbackTheme;
+    const [, bgColor] = computeTheme(fullConfig, themeName, termTransparency);
+    const baseBackground = bgColor ?? theme.background ?? "#000000";
+    const baseForeground = theme.cmdtext ?? theme.foreground ?? "#ffffff";
+    const isLight = isThemeBackgroundLight(baseBackground);
+
+    return {
+        "--term-header-bg": baseBackground,
+        "--term-header-fg": baseForeground,
+        "--term-header-fg-muted": withAlpha(baseForeground, isLight ? 0.72 : 0.7, baseForeground),
+        "--term-header-border": withAlpha(baseForeground, isLight ? 0.18 : 0.14, "rgba(255,255,255,0.14)"),
+        "--term-header-hover-bg": withAlpha(baseForeground, isLight ? 0.09 : 0.1, "rgba(255,255,255,0.1)"),
+        "--term-header-icon": withAlpha(baseForeground, isLight ? 0.74 : 0.72, baseForeground),
+        "--term-header-icon-active": baseForeground,
+        "--term-conn-local-color": theme.blue ?? (isLight ? "#0550ae" : "#79c0ff"),
+        "--term-header-badge-bg": theme.yellow ?? (isLight ? "#b58900" : "#fbbf24"),
+        "--term-block-bg-solid": adjustColor(baseBackground, isLight ? -0.015 : 0.02, baseBackground),
+    };
+}
+
 // returns (theme, bgcolor, transparency (0 - 1.0))
 export function computeTheme(
     fullConfig: FullConfigType,

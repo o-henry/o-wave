@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Button } from "@/app/element/button";
+import ChartIconUrl from "@/app/asset/chart-svgrepo-com.svg?url";
 import {
     MetaKeyAtomFnType,
     WaveEnv,
@@ -152,6 +153,19 @@ export function getBlockHeaderIcon(blockIcon: string, overrideIconColor?: string
     let iconStyle = null;
     if (!util.isBlank(iconColor)) {
         iconStyle = { color: iconColor };
+    }
+    if (blockIcon === "__sysinfo_chart__") {
+        return (
+            <span
+                key="icon"
+                className="block-frame-icon block-frame-icon-custom block-frame-icon-sysinfo"
+                style={{
+                    ...iconStyle,
+                    WebkitMaskImage: `url("${ChartIconUrl}")`,
+                    maskImage: `url("${ChartIconUrl}")`,
+                }}
+            />
+        );
     }
     const iconClass = util.makeIconClass(blockIcon, true);
     if (iconClass != null) {

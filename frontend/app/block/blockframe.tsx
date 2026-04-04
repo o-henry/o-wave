@@ -156,7 +156,14 @@ const BlockFrame_Default_Component = (props: BlockFrameProps) => {
     const viewIconElem = getViewIconElem(viewIconUnion, iconColor);
     let innerStyle: React.CSSProperties = {};
     if (!preview) {
-        innerStyle = computeBgStyleFromMeta(customBg);
+        innerStyle = computeBgStyleFromMeta(customBg) ?? {};
+        if (customBg != null) {
+            for (const [key, value] of Object.entries(customBg)) {
+                if (key.startsWith("--")) {
+                    (innerStyle as Record<string, any>)[key] = value;
+                }
+            }
+        }
     }
     const previewElem = <div className="block-frame-preview">{viewIconElem}</div>;
     const headerElem = (

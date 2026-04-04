@@ -81,10 +81,10 @@ const PlotTypes: object = {
 
 const DefaultPlotMeta = {
     cpu: defaultCpuMeta("CPU %"),
-    "mem:total": defaultMemMeta("Memory Total", "mem:total"),
-    "mem:used": defaultMemMeta("Memory Used", "mem:total"),
-    "mem:free": defaultMemMeta("Memory Free", "mem:total"),
-    "mem:available": defaultMemMeta("Memory Available", "mem:total"),
+    "mem:total": defaultMemMeta("MEMORY TOTAL", "mem:total"),
+    "mem:used": defaultMemMeta("MEMORY USED", "mem:total"),
+    "mem:free": defaultMemMeta("MEMORY FREE", "mem:total"),
+    "mem:available": defaultMemMeta("MEMORY AVAILABLE", "mem:total"),
 };
 for (let i = 0; i < 32; i++) {
     DefaultPlotMeta[`cpu:${i}`] = defaultCpuMeta(`Core ${i}`);
@@ -218,10 +218,10 @@ class SysinfoViewModel implements ViewModel {
             return plotType;
         });
         this.viewIcon = jotai.atom((get) => {
-            return "chart-line"; // should not be hardcoded
+            return "__sysinfo_chart__";
         });
         this.viewName = jotai.atom((get) => {
-            return get(this.plotTypeSelectedAtom);
+            return get(this.plotTypeSelectedAtom).replace(/\s+/g, "").toUpperCase();
         });
         this.incrementCount = jotai.atom(null, async (get, _set) => {
             const count = get(this.env.getBlockMetaKeyAtom(blockId, "count")) ?? 0;
@@ -443,13 +443,16 @@ function SingleLinePlot({
     );
 
     // only add the gradient for single items
-    marks.push(
-        Plot.areaY(plotData, {
-            fill: `url(#gradient-${blockId}-${yval})`,
-            x: "ts",
-            y: yval,
-        })
-    );
+    const isCpuMetric = yval === "cpu" || yval.startsWith("cpu:");
+    if (!isCpuMetric) {
+        marks.push(
+            Plot.areaY(plotData, {
+                fill: `url(#gradient-${blockId}-${yval})`,
+                x: "ts",
+                y: yval,
+            })
+        );
+    }
     if (title) {
         marks.push(
             Plot.text([yvalMeta?.name], {

@@ -19,6 +19,8 @@
     overflow: hidden;
     position: relative;
     border-radius: 0 !important;
+    background-color: var(--term-block-bg-solid, transparent);
+    color: var(--term-header-fg, var(--main-text-color));
 
     .term-header {
         display: flex;
@@ -28,12 +30,14 @@
         gap: 10px;
         align-items: center;
         flex-shrink: 0;
-        border-bottom: 1px solid var(--border-color);
+        background-color: var(--term-header-bg, transparent);
+        border-bottom: 1px solid var(--term-header-border, var(--border-color));
     }
 
     .term-toolbar {
         height: 20px;
-        border-bottom: 1px solid var(--border-color);
+        background-color: var(--term-block-bg-solid, transparent);
+        border-bottom: 1px solid var(--term-header-border, var(--border-color));
         overflow: hidden;
     }
 
@@ -41,9 +45,11 @@
         display: flex;
         flex-direction: row;
         height: 24px;
-        border-bottom: 1px solid var(--border-color);
+        background-color: var(--term-block-bg-solid, transparent);
+        border-bottom: 1px solid var(--term-header-border, var(--border-color));
         overflow: hidden;
         align-items: center;
+        color: var(--term-header-fg, var(--main-text-color));
 
         .term-cmd-toolbar-text {
             font: var(--fixed-font);
@@ -52,6 +58,7 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             padding: 0 5px;
+            color: var(--term-header-fg-muted, var(--secondary-text-color));
         }
     }
 

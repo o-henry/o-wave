@@ -12,13 +12,36 @@
     min-height: 0;
     border-radius: 0 !important;
 
-    .block-frame-icon {
-        margin-right: 0.5em;
+        .block-frame-icon {
+            margin-right: 0.5em;
 
-        &.fa-globe {
-            color: transparent !important;
-            position: relative;
-            display: inline-flex;
+            &.block-frame-icon-custom {
+                position: relative;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 14px;
+                height: 14px;
+                min-width: 14px;
+                background-color: currentColor;
+                -webkit-mask-repeat: no-repeat;
+                mask-repeat: no-repeat;
+                -webkit-mask-position: center;
+                mask-position: center;
+                -webkit-mask-size: contain;
+                mask-size: contain;
+            }
+
+            &.block-frame-icon-sysinfo {
+                width: 15px;
+                height: 15px;
+                min-width: 15px;
+            }
+
+            &.fa-globe {
+                color: transparent !important;
+                position: relative;
+                display: inline-flex;
             align-items: center;
             justify-content: center;
             width: 14px;
@@ -148,7 +171,9 @@
                 align-items: center;
                 gap: 8px;
                 font: var(--header-font);
-                border-bottom: 1px solid var(--border-color);
+                color: var(--term-header-fg, var(--main-text-color));
+                background-color: var(--term-header-bg, transparent);
+                border-bottom: 1px solid var(--term-header-border, var(--border-color));
                 border-radius: 0 !important;
 
                 .block-frame-default-header-iconview {
@@ -164,7 +189,8 @@
                         align-items: center;
                         justify-content: center;
                         font-size: var(--header-icon-size);
-                        opacity: 0.5;
+                        color: var(--term-header-icon, var(--secondary-text-color));
+                        opacity: 0.8;
                         width: 18px;
                         min-width: 18px;
                         height: 18px;
@@ -189,7 +215,8 @@
                 .block-frame-text {
                     font: var(--fixed-font);
                     font-size: 11px;
-                    opacity: 0.7;
+                    color: var(--term-header-fg-muted, var(--secondary-text-color));
+                    opacity: 1;
                     flex-grow: 1;
 
                     &.flex-nogrow {
@@ -205,7 +232,7 @@
                             cursor: pointer;
 
                             &:hover {
-                                background: var(--highlight-bg-color);
+                                background: var(--term-header-hover-bg, var(--highlight-bg-color));
                             }
                         }
                     }
@@ -219,12 +246,12 @@
                     text-overflow: ellipsis;
                     min-width: 0;
                     font-weight: 400;
-                    color: var(--main-text-color);
+                    color: var(--term-header-fg, var(--main-text-color));
                     border-radius: 2px;
                     padding: auto;
 
                     &:hover {
-                        background-color: var(--highlight-bg-color);
+                        background-color: var(--term-header-hover-bg, var(--highlight-bg-color));
                     }
 
                     .connection-icon-box {
@@ -269,7 +296,7 @@
                                 background-color: transparent;
                                 outline: none;
                                 border: none;
-                                color: var(--main-text-color);
+                                color: var(--term-header-fg, var(--main-text-color));
                                 width: 100%;
                                 white-space: nowrap;
                                 overflow: hidden;
@@ -315,6 +342,12 @@
                         align-items: center;
                         justify-content: center;
                         flex: 0 0 24px;
+                        color: var(--term-header-icon, var(--secondary-text-color));
+
+                        &:hover {
+                            color: var(--term-header-icon-active, var(--main-text-color));
+                            background: var(--term-header-hover-bg, var(--highlight-bg-color));
+                        }
                     }
 
                     .block-frame-quick-action {
@@ -326,20 +359,20 @@
                         padding: 0;
                         border: none;
                         background: transparent;
-                        color: var(--secondary-text-color);
+                        color: var(--term-header-icon, var(--secondary-text-color));
                         cursor: pointer;
                         flex: 0 0 24px;
 
                         &:hover {
-                            color: var(--main-text-color);
-                            background: var(--highlight-bg-color);
+                            color: var(--term-header-icon-active, var(--main-text-color));
+                            background: var(--term-header-hover-bg, var(--highlight-bg-color));
                         }
 
                         .block-frame-quick-action-icon {
                             display: block;
                             width: 14px;
                             height: 14px;
-                            background-color: #fff;
+                            background-color: currentColor;
                             -webkit-mask-repeat: no-repeat;
                             mask-repeat: no-repeat;
                             -webkit-mask-position: center;
@@ -395,7 +428,7 @@
                             display: block;
                             width: 14px;
                             height: 14px;
-                            background-color: #fff;
+                            background-color: currentColor;
                             -webkit-mask-image: url("../_expand.svg");
                             mask-image: url("../_expand.svg");
                             -webkit-mask-repeat: no-repeat;
@@ -427,7 +460,7 @@
                             display: block;
                             width: 14px;
                             height: 14px;
-                            background-color: #fff;
+                            background-color: currentColor;
                             -webkit-mask-image: url("../setting3.svg");
                             mask-image: url("../setting3.svg");
                             -webkit-mask-repeat: no-repeat;

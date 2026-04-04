@@ -18,7 +18,7 @@ interface ConnectionButtonProps {
 }
 
 const terminalMaskIconStyle: React.CSSProperties = {
-    backgroundColor: "#fff",
+    backgroundColor: "currentColor",
     WebkitMaskImage: 'url("workspace-icons/terminal.svg")',
     maskImage: 'url("workspace-icons/terminal.svg")',
     WebkitMaskRepeat: "no-repeat",
@@ -50,7 +50,7 @@ export const ConnectionButton = React.memo(
             let connDisplayName: string = null;
             let extraDisplayNameClassName = "";
             if (isLocal) {
-                color = "var(--color-secondary)";
+                color = "var(--term-conn-local-color, var(--color-secondary))";
                 if (connection === "local:gitbash") {
                     titleText = "Connected to Git Bash";
                     connDisplayName = "Git Bash";
@@ -62,7 +62,7 @@ export const ConnectionButton = React.memo(
                     if (isTerminalBlock) {
                         connDisplayName = localName;
                         extraDisplayNameClassName =
-                            'text-muted group-hover:text-secondary uppercase [font-family:"Departure_Mono","DM_Mono_Nerd_Font",monospace]';
+                            'uppercase opacity-80 group-hover:opacity-100 [font-family:"Departure_Mono","DM_Mono_Nerd_Font",monospace]';
                     }
                 }
                 connIconElem = (
@@ -133,7 +133,7 @@ export const ConnectionButton = React.memo(
                 <>
                     <div
                         ref={ref}
-                        className="group flex items-center flex-nowrap overflow-hidden text-ellipsis min-w-0 font-normal text-primary rounded-sm hover:bg-highlightbg cursor-pointer"
+                        className="group flex items-center flex-nowrap overflow-hidden text-ellipsis min-w-0 font-normal rounded-sm cursor-pointer"
                         onClick={clickHandler}
                         title={titleText}
                     >
