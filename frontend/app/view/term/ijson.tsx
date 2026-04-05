@@ -104,7 +104,7 @@ body {
 }
 
 .fixed-font {
-	font: normal 12px / normal "DM Mono Nerd Font", "1984 Body", monospace;
+	font: normal 12px / normal "DMMono Nerd Font", "1984 Body", monospace;
 }
 					`}
                 </style>

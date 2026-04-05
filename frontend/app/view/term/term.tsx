@@ -30,6 +30,34 @@ import "./xterm.css";
 
 const dlog = debug("wave:term");
 
+function escapeFontFamily(fontName: string): string {
+    return `"${fontName.replace(/"/g, '\\"')}"`;
+}
+
+function buildTerminalFontFamilyStack(primaryFontFamily?: string | null, fallbackFontFamily?: string | null): string {
+    const fontFamilies = [
+        primaryFontFamily?.trim(),
+        fallbackFontFamily?.trim(),
+        "Hack Nerd Font Mono",
+        "DMMono Nerd Font",
+        "1984 Body",
+        "monospace",
+    ].filter((fontName): fontName is string => Boolean(fontName && fontName.length > 0));
+
+    const dedupedFontFamilies: string[] = [];
+    const seenFontFamilies = new Set<string>();
+    for (const fontFamily of fontFamilies) {
+        const normalizedFontFamily = fontFamily.toLowerCase();
+        if (seenFontFamilies.has(normalizedFontFamily)) {
+            continue;
+        }
+        seenFontFamilies.add(normalizedFontFamily);
+        dedupedFontFamilies.push(fontFamily === "monospace" ? fontFamily : escapeFontFamily(fontFamily));
+    }
+
+    return dedupedFontFamilies.join(", ");
+}
+
 interface TerminalViewProps {
     blockId: string;
     model: TermViewModel;
@@ -292,6 +320,11 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
         const termMacOptionIsMeta = globalStore.get(termMacOptionIsMetaAtom) ?? false;
         const termCursorStyle = normalizeCursorStyle(globalStore.get(getOverrideConfigAtom(blockId, "term:cursor")));
         const termCursorBlink = globalStore.get(getOverrideConfigAtom(blockId, "term:cursorblink")) ?? false;
+        const termFontFamily = buildTerminalFontFamilyStack(
+            termSettings?.["term:fontfamily"] ?? connFontFamily ?? "DMMono Nerd Font",
+            termSettings?.["term:fontfallback"]
+        );
+        const forceDomRenderer = blockData?.meta?.controller === "cmd";
         const wasFocused = model.termRef.current != null && globalStore.get(model.nodeModel.isFocused);
         const termWrap = new TermWrap(
             tabModel.tabId,
@@ -300,10 +333,7 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
             {
                 theme: termTheme,
                 fontSize: termFontSize,
-                fontFamily:
-                    termSettings?.["term:fontfamily"] ??
-                    connFontFamily ??
-                    '"DM Mono Nerd Font", "1984 Body", monospace',
+                fontFamily: termFontFamily,
                 drawBoldTextInBrightColors: false,
                 fontWeight: "normal",
                 fontWeightBold: "bold",
@@ -318,7 +348,7 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
             },
             {
                 keydownHandler: model.handleTerminalKeydown.bind(model),
-                useWebGl: !termSettings?.["term:disablewebgl"],
+                useWebGl: !termSettings?.["term:disablewebgl"] && !forceDomRenderer,
                 sendDataHandler: model.sendDataToController.bind(model),
                 nodeModel: model.nodeModel,
             }
@@ -388,7 +418,13 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
     );
 
     return (
-        <div className={clsx("view-term", "term-mode-" + termMode)} ref={viewRef} onContextMenu={handleContextMenu}>
+        <div
+            className={clsx("view-term", "term-mode-" + termMode, {
+                "cmd-controller": blockData?.meta?.controller === "cmd",
+            })}
+            ref={viewRef}
+            onContextMenu={handleContextMenu}
+        >
             {termBg && <div key="term-bg" className="absolute inset-0 z-0 pointer-events-none" style={termBg} />}
             <TermResyncHandler blockId={blockId} model={model} />
             <TermThemeUpdater blockId={blockId} model={model} termRef={model.termRef} />

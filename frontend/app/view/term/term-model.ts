@@ -40,7 +40,7 @@ import { boundNumber, fireAndForget, stringToBase64 } from "@/util/util";
 import * as jotai from "jotai";
 import * as React from "react";
 import { getBlockingCommand } from "./shellblocking";
-import { computeTheme, computeThemeChromeVars, DefaultTermTheme, isThemeBackgroundLight } from "./termutil";
+import { computeTheme, computeThemeChromeVars, DefaultTermTheme } from "./termutil";
 import { TermWrap, WebGLSupported } from "./termwrap";
 
 export class TermViewModel implements ViewModel {
@@ -55,6 +55,7 @@ export class TermViewModel implements ViewModel {
     viewIcon: jotai.Atom<IconButtonDecl>;
     viewName: jotai.Atom<string>;
     viewText: jotai.Atom<HeaderElem[]>;
+    noHeader: jotai.Atom<boolean>;
     blockBg: jotai.Atom<MetaType>;
     manageConnection: jotai.Atom<boolean>;
     filterOutNowsh?: jotai.Atom<boolean>;
@@ -124,6 +125,14 @@ export class TermViewModel implements ViewModel {
                 return "";
             }
             return "";
+        });
+        this.noHeader = jotai.atom((get) => {
+            const termMode = get(this.termMode);
+            if (termMode == "vdom") {
+                return false;
+            }
+            const blockData = get(this.blockAtom);
+            return blockData?.meta?.controller === "cmd";
         });
         this.viewText = jotai.atom((get) => {
             const termMode = get(this.termMode);
@@ -242,14 +251,7 @@ export class TermViewModel implements ViewModel {
         });
         this.termTransparencyAtom = useBlockAtom(blockId, "termtransparencyatom", () => {
             return jotai.atom<number>((get) => {
-                const configuredValue = get(getOverrideConfigAtom(this.blockId, "term:transparency"));
-                if (configuredValue != null) {
-                    return boundNumber(configuredValue, 0, 1);
-                }
-                const fullConfig = get(atoms.fullConfigAtom);
-                const themeName = get(this.termThemeNameAtom);
-                const theme = fullConfig?.termthemes?.[themeName] ?? fullConfig?.termthemes?.[DefaultTermTheme];
-                const value = isThemeBackgroundLight(theme?.background) ? 0 : 0.5;
+                const value = get(getOverrideConfigAtom(this.blockId, "term:transparency")) ?? 0.5;
                 return boundNumber(value, 0, 1);
             });
         });

@@ -13,7 +13,8 @@ interface SettingsVisualContentProps {
 }
 
 const commonMonospaceFonts = [
-    "DM Mono Nerd Font",
+    "DMMono Nerd Font",
+    "Hack Nerd Font Mono",
     "JetBrains Mono",
     "Menlo",
     "SF Mono",
@@ -31,13 +32,19 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
     const currentTheme = settings["term:theme"] ?? "";
     const currentFontSize = settings["term:fontsize"];
     const currentFontFamily = settings["term:fontfamily"] ?? "";
+    const currentFontFallback = settings["term:fontfallback"] ?? "";
 
     const [fontFamilyInput, setFontFamilyInput] = useState(currentFontFamily);
+    const [fontFallbackInput, setFontFallbackInput] = useState(currentFontFallback);
     const [fontSizeInput, setFontSizeInput] = useState(currentFontSize == null ? "" : String(currentFontSize));
 
     useEffect(() => {
         setFontFamilyInput(currentFontFamily);
     }, [currentFontFamily]);
+
+    useEffect(() => {
+        setFontFallbackInput(currentFontFallback);
+    }, [currentFontFallback]);
 
     useEffect(() => {
         setFontSizeInput(currentFontSize == null ? "" : String(currentFontSize));
@@ -84,6 +91,13 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
             "term:fontfamily": trimmedValue === "" ? null : trimmedValue,
         });
     }, [fontFamilyInput, model]);
+
+    const applyFontFallback = useCallback(async () => {
+        const trimmedValue = fontFallbackInput.trim();
+        await model.updateSettingsValues({
+            "term:fontfallback": trimmedValue === "" ? null : trimmedValue,
+        });
+    }, [fontFallbackInput, model]);
 
     return (
         <div className="flex h-full flex-col gap-6 overflow-y-auto p-6 normal-case">
@@ -167,6 +181,46 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
                             onClick={() => {
                                 setFontFamilyInput("");
                                 void model.updateSettingsValues({ "term:fontfamily": null });
+                            }}
+                            className="rounded-full border border-border px-3 py-1 text-xs text-secondary transition-colors hover:bg-highlightbg hover:text-primary cursor-pointer"
+                        >
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section className="rounded-lg border border-border bg-black/10 p-4">
+                <div className="mb-1 text-sm font-medium text-primary">Terminal Font Fallback</div>
+                <div className="mb-3 text-xs text-muted-foreground">
+                    기본 폰트에 없는 glyph만 대체 렌더링합니다. Nerd icon 보강용 폰트를 넣으면 됩니다.
+                </div>
+                <div className="flex flex-col gap-3">
+                    <Input
+                        value={fontFallbackInput}
+                        onChange={setFontFallbackInput}
+                        onBlur={() => void applyFontFallback()}
+                        placeholder='예: "Hack Nerd Font Mono"'
+                    />
+                    <div className="flex flex-wrap gap-2">
+                        {["Hack Nerd Font Mono", "JetBrainsMonoNL Nerd Font Mono"].map((fontName) => (
+                            <button
+                                key={fontName}
+                                type="button"
+                                onClick={() => {
+                                    setFontFallbackInput(fontName);
+                                    void model.updateSettingsValues({ "term:fontfallback": fontName });
+                                }}
+                                className="rounded-full border border-border px-3 py-1 text-xs text-secondary transition-colors hover:bg-highlightbg hover:text-primary cursor-pointer"
+                            >
+                                {fontName}
+                            </button>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setFontFallbackInput("");
+                                void model.updateSettingsValues({ "term:fontfallback": null });
                             }}
                             className="rounded-full border border-border px-3 py-1 text-xs text-secondary transition-colors hover:bg-highlightbg hover:text-primary cursor-pointer"
                         >

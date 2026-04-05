@@ -179,6 +179,42 @@
     opacity: 1 !important;
 }
 
+.xterm-italic {
+    font-style: normal !important;
+}
+
+.xterm .xterm-bg-0,
+.xterm .xterm-bg-16 {
+    background-color: color-mix(in srgb, var(--term-block-bg-solid, #2e3440) 52%, transparent 48%) !important;
+}
+
+.xterm span[style*="background-color:#000000"] {
+    background-color: color-mix(in srgb, var(--term-block-bg-solid, #2e3440) 52%, transparent 48%) !important;
+}
+
+.view-term.cmd-controller .xterm .xterm-bg-0,
+.view-term.cmd-controller .xterm .xterm-bg-16,
+.view-term.cmd-controller .xterm [class*="xterm-bg-"],
+.view-term.cmd-controller .xterm span[style*="background-color:#000000"],
+.view-term.cmd-controller .xterm span[style*="background-color: #000000"],
+.view-term.cmd-controller .xterm span[style*="background-color:#000"],
+.view-term.cmd-controller .xterm span[style*="background-color: #000"],
+.view-term.cmd-controller .xterm span[style*="background-color:"],
+.view-term.cmd-controller .xterm span[style*="background-color:rgb(0,0,0)"],
+.view-term.cmd-controller .xterm span[style*="background-color: rgb(0, 0, 0)"],
+.view-term.cmd-controller .xterm span[style*="background-color:rgb(18,18,18)"],
+.view-term.cmd-controller .xterm span[style*="background-color: rgb(18, 18, 18)"],
+.view-term.cmd-controller .xterm span[style*="background-color:rgb(28,28,28)"],
+.view-term.cmd-controller .xterm span[style*="background-color: rgb(28, 28, 28)"] {
+    background-color: transparent !important;
+}
+
+.view-term.cmd-controller .xterm .xterm-italic,
+.view-term.cmd-controller .xterm span[style*="font-style:italic"],
+.view-term.cmd-controller .xterm span[style*="font-style: italic"] {
+    font-style: normal !important;
+}
+
 .xterm-underline-1 { text-decoration: underline; }
 .xterm-underline-2 { text-decoration: double underline; }
 .xterm-underline-3 { text-decoration: wavy underline; }

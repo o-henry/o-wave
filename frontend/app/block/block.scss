@@ -110,7 +110,7 @@
         width: 100%;
         overflow: hidden;
         min-height: 0;
-        padding: 1px;
+        padding: 0;
 
         &.block-no-padding {
             padding: 0;
@@ -151,7 +151,7 @@
 
     &.block-frame-default {
         position: relative;
-        padding: 1px;
+        padding: 0;
         border-radius: 0 !important;
 
         .block-frame-default-inner {
@@ -227,7 +227,7 @@
                         direction: rtl;
                         text-align: left;
                         text-transform: uppercase;
-                        font-family: "Departure Mono", "DM Mono Nerd Font", monospace;
+                        font-family: "Departure Mono", "DMMono Nerd Font", monospace;
                         span {
                             cursor: pointer;
 
@@ -638,12 +638,13 @@
             left: 0;
             right: 0;
             bottom: 0;
-            border: var(--selection-border-width) solid transparent;
             pointer-events: none;
-            padding: 2px;
+            padding: 0;
             box-sizing: border-box;
             border-radius: 0 !important;
             z-index: var(--zindex-block-mask-inner);
+            background-color: rgb(from var(--block-bg-solid-color) r g b / 12%);
+            transition: background-color 120ms ease;
 
             &.show-block-mask {
                 user-select: none;
@@ -670,15 +671,29 @@
 
         &.block-focused {
             .block-mask {
-                border: var(--selection-border-width) solid var(--selection-border-color);
+                background-color: transparent;
             }
 
             &.block-no-highlight,
             &.block-preview {
                 .block-mask {
-                    border: var(--selection-border-width) solid rgb(from var(--border-color) r g b / 10%) !important;
+                    background-color: transparent !important;
                 }
             }
+        }
+
+        .block-frame-default-inner {
+            transition:
+                filter 120ms ease,
+                opacity 120ms ease,
+                background-color 120ms ease;
+            filter: brightness(0.9) saturate(0.92);
+        }
+
+        &.block-focused .block-frame-default-inner,
+        &.block-preview .block-frame-default-inner,
+        &.block-no-highlight .block-frame-default-inner {
+            filter: brightness(1.03) saturate(1);
         }
     }
 }

@@ -5,7 +5,6 @@ import { Tooltip } from "@/app/element/tooltip";
 import { TabRpcClient } from "@/app/store/wshrpcutil";
 import { useWaveEnv } from "@/app/waveenv/waveenv";
 import { deleteLayoutModelForTab } from "@/layout/index";
-import { isMacOSTahoeOrLater } from "@/util/platformutil";
 import { fireAndForget } from "@/util/util";
 import { useAtomValue } from "jotai";
 import { OverlayScrollbars } from "overlayscrollbars";
@@ -18,8 +17,6 @@ import { UpdateStatusBanner } from "./updatebanner";
 
 const TabDefaultWidth = 130;
 const TabMinWidth = 100;
-const MacOSTrafficLightsWidth = 74;
-const MacOSTahoeTrafficLightsWidth = 80;
 
 const OSOptions = {
     overflow: {
@@ -41,6 +38,7 @@ const OSOptions = {
 interface TabBarProps {
     workspace: Workspace;
     noTabs?: boolean;
+    position?: "top" | "bottom";
 }
 
 function strArrayIsEqual(a: string[], b: string[]) {
@@ -62,7 +60,7 @@ function strArrayIsEqual(a: string[], b: string[]) {
     return true;
 }
 
-const TabBar = memo(({ workspace, noTabs }: TabBarProps) => {
+const TabBar = memo(({ workspace, noTabs, position = "top" }: TabBarProps) => {
     const env = useWaveEnv<TabBarEnv>();
     const [tabIds, setTabIds] = useState<string[]>([]);
     const [dragStartPositions, setDragStartPositions] = useState<number[]>([]);
@@ -170,6 +168,9 @@ const TabBar = memo(({ workspace, noTabs }: TabBarProps) => {
 
         // Apply min/max constraints
         idealTabWidth = Math.max(TabMinWidth, Math.min(idealTabWidth, TabDefaultWidth));
+        if (position === "bottom") {
+            idealTabWidth = Math.max(44, Math.min(idealTabWidth, 58));
+        }
 
         // Determine if the tab bar needs to be scrollable
         const newScrollable = idealTabWidth * numberOfTabs > spaceForTabs;
@@ -535,16 +536,9 @@ const TabBar = memo(({ workspace, noTabs }: TabBarProps) => {
     const showAppMenuButton = env.isWindows() || (!env.isMacOS() && !showMenuBar);
 
     // Calculate window drag left width based on platform and state
-    let windowDragLeftWidth = 10;
-    if (env.isMacOS() && !isFullScreen) {
-        const trafficLightsWidth = isMacOSTahoeOrLater()
-            ? MacOSTahoeTrafficLightsWidth
-            : MacOSTrafficLightsWidth;
-        if (zoomFactor > 0) {
-            windowDragLeftWidth = trafficLightsWidth / zoomFactor;
-        } else {
-            windowDragLeftWidth = trafficLightsWidth;
-        }
+    let windowDragLeftWidth = env.isMacOS() && !isFullScreen ? 12 : 10;
+    if (position === "bottom") {
+        windowDragLeftWidth = env.isMacOS() && !isFullScreen ? 6 : 6;
     }
 
     // Calculate window drag right width
@@ -558,12 +552,33 @@ const TabBar = memo(({ workspace, noTabs }: TabBarProps) => {
     }
 
     return (
-        <div ref={tabbarWrapperRef} className="tab-bar-wrapper">
+        <div
+            ref={tabbarWrapperRef}
+            className={`tab-bar-wrapper${position === "bottom" ? " tab-bar-bottom" : ""}`}
+        >
             <div
                 ref={draggerLeftRef}
                 className="h-full shrink-0 z-window-drag"
                 style={{ width: windowDragLeftWidth, WebkitAppRegion: "drag" } as any}
             />
+            {position === "bottom" && (
+                <div className="tabbar-left-icon-wrap" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
+                    <span
+                        className="tabbar-left-icon"
+                        aria-hidden="true"
+                        style={{
+                            WebkitMaskImage: 'url("circle-left-tab.svg")',
+                            maskImage: 'url("circle-left-tab.svg")',
+                            WebkitMaskRepeat: "no-repeat",
+                            maskRepeat: "no-repeat",
+                            WebkitMaskPosition: "center",
+                            maskPosition: "center",
+                            WebkitMaskSize: "contain",
+                            maskSize: "contain",
+                        }}
+                    />
+                </div>
+            )}
             {showAppMenuButton && (
                 <div
                     ref={appMenuButtonRef}

@@ -27,7 +27,12 @@ function CodePlain({ className = "", isCodeBlock, text }: { className?: string; 
     }
 
     return (
-        <code className={cn("text-secondary font-mono text-[12px] rounded-sm bg-zinc-800/80 px-1.5 py-0.5", className)}>
+        <code
+            className={cn(
+                "text-secondary font-mono text-[12px] rounded-sm border border-white/8 bg-black/25 px-1.5 py-0.5 backdrop-blur-[1px]",
+                className
+            )}
+        >
             {text}
         </code>
     );
@@ -151,15 +156,18 @@ const CodeBlock = ({ children, onClickExecute, codeBlockMaxWidthAtom }: CodeBloc
 
     return (
         <div
-            className={cn("rounded-lg overflow-hidden bg-black my-4", codeBlockMaxWidth && "max-w-full")}
+            className={cn(
+                "my-4 overflow-hidden rounded-lg border border-white/8 bg-black/18 backdrop-blur-[2px]",
+                codeBlockMaxWidth && "max-w-full"
+            )}
             style={
                 codeBlockMaxWidth
                     ? { maxWidth: codeBlockMaxWidth, minWidth: Math.min(400, codeBlockMaxWidth) }
                     : undefined
             }
         >
-            <div className="flex items-center justify-between pl-3 pr-2 pt-2 pb-1.5">
-                <span className="text-[11px] text-white/50">{language}</span>
+            <div className="flex items-center justify-between border-b border-white/6 pl-3 pr-2 pt-2 pb-1.5">
+                <span className="text-[11px] text-white/55">{language}</span>
                 <div className="flex items-center gap-2">
                     <CopyButton onClick={handleCopy} title="Copy" />
                     {onClickExecute && (
@@ -173,7 +181,7 @@ const CodeBlock = ({ children, onClickExecute, codeBlockMaxWidthAtom }: CodeBloc
                     )}
                 </div>
             </div>
-            <pre className="px-4 pb-2 pt-0 overflow-x-auto m-0 text-secondary max-w-full">{children}</pre>
+            <pre className="m-0 max-w-full overflow-x-auto px-4 pb-3 pt-2 text-secondary">{children}</pre>
         </div>
     );
 };

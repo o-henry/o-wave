@@ -4,7 +4,7 @@
 .tab {
     position: absolute;
     width: 130px;
-    height: calc(100% - 3px);
+    height: 100%;
     padding: 0 0 0 0;
     box-sizing: border-box;
     font-weight: bold;
@@ -28,7 +28,7 @@
         width: calc(100% - 6px);
         height: 100%;
         white-space: nowrap;
-        border-radius: 6px;
+        border-radius: 0 !important;
     }
 
     &.animate {
@@ -40,13 +40,44 @@
     &.active {
         .tab-inner {
             border-color: transparent;
-            border-radius: 6px;
+            border-radius: 0 !important;
             background: var(--term-header-hover-bg, rgb(from var(--main-text-color) r g b / 0.1));
         }
 
         .name {
             color: var(--term-header-fg, rgba(255, 255, 255, 1));
             font-weight: 600;
+        }
+    }
+
+    .tab-bar-bottom & {
+        .tab-divider {
+            display: none;
+        }
+
+        .tab-inner {
+            width: auto;
+            min-width: 100%;
+            background: rgba(68, 71, 77, 0.92) !important;
+        }
+
+        .name {
+            width: auto;
+            min-width: 0;
+            text-shadow: none;
+            color: #111111;
+            font-weight: 500;
+        }
+
+        &.active {
+            .tab-inner {
+                background: rgba(134, 138, 145, 0.96) !important;
+            }
+
+            .name {
+                color: #111111;
+                font-weight: 500;
+            }
         }
     }
 
@@ -117,6 +148,13 @@ body:not(.nohover) .tab.dragging {
         &:hover {
             color: var(--term-header-fg, var(--main-text-color));
         }
+    }
+}
+
+.tab-bar-bottom .tab:hover,
+.tab-bar-bottom .tab.dragging {
+    .tab-inner {
+        background: rgba(96, 100, 108, 0.92) !important;
     }
 }
 

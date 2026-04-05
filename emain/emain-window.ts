@@ -172,7 +172,7 @@ export class WaveBrowserWindow extends BaseWindow {
         const isBlur = !isTransparent && (settings?.["window:blur"] ?? false);
 
         if (opts.unamePlatform === "darwin") {
-            winOpts.titleBarStyle = "hiddenInset";
+            winOpts.titleBarStyle = "hidden";
             winOpts.titleBarOverlay = false;
             winOpts.autoHideMenuBar = !settings?.["window:showmenubar"];
             winOpts.acceptFirstMouse = true;
@@ -211,8 +211,11 @@ export class WaveBrowserWindow extends BaseWindow {
                 winOpts.backgroundColor = "#222222";
             }
         }
-
         super(winOpts);
+
+        if (opts.unamePlatform === "darwin") {
+            this.setWindowButtonVisibility(false);
+        }
 
         if (opts.unamePlatform === "win32") {
             this.setMenu(null);

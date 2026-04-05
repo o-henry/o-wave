@@ -67,7 +67,7 @@ const TabContent = React.memo(({ tabId, noTopPadding }: { tabId: string; noTopPa
     }
 
     return (
-        <div className={`flex flex-row flex-grow min-h-0 w-full items-center justify-center overflow-hidden relative ${noTopPadding ? "" : "pt-[1px]"} pr-[1px] pb-[1px] pl-[1px]`}>
+        <div className={`flex flex-row flex-grow min-h-0 w-full items-center justify-center overflow-hidden relative ${noTopPadding ? "" : ""} p-0`}>
             {innerContent}
         </div>
     );

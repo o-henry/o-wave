@@ -225,7 +225,8 @@ function getTipsShortcutItems(): { label: string; shortcut: string; note?: strin
 }
 
 const commonMonospaceFonts = [
-    "DM Mono Nerd Font",
+    "DMMono Nerd Font",
+    "Hack Nerd Font Mono",
     "JetBrains Mono",
     "Menlo",
     "SF Mono",
@@ -259,7 +260,7 @@ function getFontMeasureContext(): CanvasRenderingContext2D | null {
 
 function makeFontPreviewFamily(fontName: string): string {
     const escapedFontName = fontName.replace(/"/g, '\\"');
-    return `"${escapedFontName}", "DM Mono Nerd Font", monospace`;
+    return `"${escapedFontName}", "DMMono Nerd Font", monospace`;
 }
 
 function SettingsTooltipContent({ hasConfigErrors }: { hasConfigErrors: boolean }) {
@@ -427,11 +428,13 @@ const SettingsFloatingWindow = memo(
         const termTheme = fullConfig?.settings?.["term:theme"] ?? "";
         const termFontSize = fullConfig?.settings?.["term:fontsize"];
         const termFontFamily = fullConfig?.settings?.["term:fontfamily"] ?? "";
+        const termFontFallback = fullConfig?.settings?.["term:fontfallback"] ?? "";
         const termThemes = fullConfig?.termthemes ?? {};
         const [bgOpacityInput, setBgOpacityInput] = useState(() => `${Math.round(bgImageOpacity * 100)}`);
         const [fontSizeInput, setFontSizeInput] = useState(() => (termFontSize == null ? "" : `${termFontSize}`));
         const [fontFamilyInput, setFontFamilyInput] = useState(termFontFamily);
-        const [fontBrowserOpen, setFontBrowserOpen] = useState(false);
+        const [fontFallbackInput, setFontFallbackInput] = useState(termFontFallback);
+        const [fontBrowserOpen, setFontBrowserOpen] = useState<"font" | "fallback" | null>(null);
         const [fontSearchInput, setFontSearchInput] = useState("");
         const [installedFontOptions, setInstalledFontOptions] = useState<InstalledFontOption[]>([]);
         const [fontsLoading, setFontsLoading] = useState(false);
@@ -448,6 +451,10 @@ const SettingsFloatingWindow = memo(
         useEffect(() => {
             setFontFamilyInput(termFontFamily);
         }, [termFontFamily]);
+
+        useEffect(() => {
+            setFontFallbackInput(termFontFallback);
+        }, [termFontFallback]);
 
         useEffect(() => {
             if (!isOpen) {
@@ -524,7 +531,7 @@ const SettingsFloatingWindow = memo(
         const visibleFontOptions = useMemo(() => {
             const searchQuery = fontSearchInput.trim().toLowerCase();
             const mergedFonts = new Map<string, { fontName: string; isInstalled: boolean; searchText: string }>();
-            [termFontFamily, fontFamilyInput, ...commonMonospaceFonts]
+            [termFontFamily, fontFamilyInput, termFontFallback, fontFallbackInput, ...commonMonospaceFonts]
                 .filter((fontName): fontName is string => !isBlank(fontName))
                 .forEach((fontName) => {
                     mergedFonts.set(fontName, {
@@ -549,7 +556,7 @@ const SettingsFloatingWindow = memo(
                     return a.fontName.localeCompare(b.fontName);
                 })
                 .map((font) => font.fontName);
-        }, [fontFamilyInput, fontSearchInput, installedFontOptions, termFontFamily]);
+        }, [fontFamilyInput, fontFallbackInput, fontSearchInput, installedFontOptions, termFontFamily, termFontFallback]);
         const handleOpenBackgroundPicker = useCallback(() => {
             fileInputRef.current?.click();
         }, []);
@@ -566,7 +573,11 @@ const SettingsFloatingWindow = memo(
                 const parsedValue = Number(rawValue);
                 const boundedValue = Number.isFinite(parsedValue) ? Math.min(Math.max(parsedValue, 0), 100) : 22;
                 setBgOpacityInput(`${boundedValue}`);
-                updateConfigValue({ "window:bgimageopacity": boundedValue / 100 });
+                const normalizedOpacity = boundedValue / 100;
+                updateConfigValue({
+                    "window:bgimageopacity": normalizedOpacity,
+                    "term:transparency": normalizedOpacity,
+                });
             },
             [updateConfigValue]
         );
@@ -621,13 +632,43 @@ const SettingsFloatingWindow = memo(
             [updateConfigValue]
         );
 
+        const commitTermFontFallback = useCallback(
+            (rawValue: string) => {
+                const trimmedValue = rawValue.trim();
+                setFontFallbackInput(trimmedValue);
+                updateConfigValue({
+                    "term:fontfallback": trimmedValue === "" ? null : trimmedValue,
+                } as unknown as Partial<SettingsType>);
+            },
+            [updateConfigValue]
+        );
+
+        const isFontBrowserForFallback = fontBrowserOpen === "fallback";
+
+        const isSelectedFont = useCallback(
+            (fontName: string) => {
+                return isFontBrowserForFallback ? fontFallbackInput === fontName : fontFamilyInput === fontName;
+            },
+            [fontFallbackInput, fontFamilyInput, isFontBrowserForFallback]
+        );
+
+        const openFontBrowser = useCallback((target: "font" | "fallback") => {
+            setFontSearchInput("");
+            setFontBrowserOpen((prev) => (prev === target ? null : target));
+        }, []);
+
         const selectTerminalFont = useCallback(
             (fontName: string) => {
+                setFontBrowserOpen(null);
+                if (isFontBrowserForFallback) {
+                    setFontFallbackInput(fontName);
+                    commitTermFontFallback(fontName);
+                    return;
+                }
                 setFontFamilyInput(fontName);
-                setFontBrowserOpen(false);
                 commitTermFontFamily(fontName);
             },
-            [commitTermFontFamily]
+            [commitTermFontFallback, commitTermFontFamily, isFontBrowserForFallback]
         );
 
         if (!isOpen) return null;
@@ -790,7 +831,7 @@ const SettingsFloatingWindow = memo(
                                                     <input
                                                         type="text"
                                                         value={fontFamilyInput}
-                                                        placeholder="DM Mono Nerd Font"
+                                                        placeholder="DMMono Nerd Font"
                                                         className="min-w-0 flex-1 border-0 border-b border-white/20 bg-transparent px-0 py-1 text-right text-[12px] text-[#f2eee8] outline-none transition-colors placeholder:text-[#8e877f] focus:border-[#79c0ff]"
                                                         onChange={(event) => setFontFamilyInput(event.target.value)}
                                                         onBlur={(event) => commitTermFontFamily(event.target.value)}
@@ -803,12 +844,12 @@ const SettingsFloatingWindow = memo(
                                                     <button
                                                         type="button"
                                                         className="border border-white/10 px-3 py-1.5 text-[10px] tracking-[0.14em] text-[#79c0ff] transition-colors hover:bg-white/[0.03]"
-                                                        onClick={() => setFontBrowserOpen((open) => !open)}
+                                                        onClick={() => openFontBrowser("font")}
                                                     >
-                                                        {fontBrowserOpen ? "HIDE" : "BROWSE"}
+                                                        {fontBrowserOpen === "font" ? "HIDE" : "BROWSE"}
                                                     </button>
                                                 </div>
-                                                {fontBrowserOpen ? (
+                                                {fontBrowserOpen === "font" ? (
                                                     <div className="mt-3 rounded-md border border-white/10 bg-black/20 p-3">
                                                         <div className="flex items-center gap-2">
                                                             <input
@@ -840,10 +881,109 @@ const SettingsFloatingWindow = memo(
                                                                     const isInstalled = installedFontOptions.some(
                                                                         (font) => font.family === fontName
                                                                     );
-                                                                    const isSelected = fontFamilyInput === fontName;
+                                                                    const isSelected = isSelectedFont(fontName);
                                                                     return (
                                                                         <button
                                                                             key={fontName}
+                                                                            type="button"
+                                                                            className={clsx(
+                                                                                "flex w-full flex-col items-start gap-1 border-b border-white/6 px-0 py-2 text-left transition-colors hover:bg-white/[0.03]",
+                                                                                isSelected && "bg-white/[0.04]"
+                                                                            )}
+                                                                            onClick={() => selectTerminalFont(fontName)}
+                                                                        >
+                                                                            <div className="flex w-full items-center justify-between gap-3">
+                                                                                <div className="min-w-0 truncate normal-case text-[12px] text-[#f2eee8]">
+                                                                                    {fontName}
+                                                                                </div>
+                                                                                <div className="text-[10px] tracking-[0.12em] text-[#8e877f]">
+                                                                                    {isInstalled ? "INSTALLED" : "SUGGESTED"}
+                                                                                </div>
+                                                                            </div>
+                                                                            <div
+                                                                                className="normal-case text-[14px] leading-[1.25] tracking-normal text-[#c5d1df] [font-variant-ligatures:none] [-webkit-font-smoothing:antialiased]"
+                                                                                style={{ fontFamily: makeFontPreviewFamily(fontName) }}
+                                                                            >
+                                                                                {fontPreviewText}
+                                                                            </div>
+                                                                        </button>
+                                                                    );
+                                                                })
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ) : null}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-b border-white/8 px-0 py-3">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-[13px] text-[#f2eee8]">TERMINAL FONT FALLBACK</div>
+                                                <div className="mt-1 text-[11px] text-[#8e877f] uppercase">
+                                                    Font used when primary font is missing glyphs
+                                                </div>
+                                            </div>
+                                            <div className="min-w-[320px] max-w-[420px] flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={fontFallbackInput}
+                                                        placeholder='"1984"'
+                                                        className="min-w-0 flex-1 border-0 border-b border-white/20 bg-transparent px-0 py-1 text-right text-[12px] text-[#f2eee8] outline-none transition-colors placeholder:text-[#8e877f] focus:border-[#79c0ff]"
+                                                        onChange={(event) => setFontFallbackInput(event.target.value)}
+                                                        onBlur={(event) => commitTermFontFallback(event.target.value)}
+                                                        onKeyDown={(event) => {
+                                                            if (event.key === "Enter") {
+                                                                commitTermFontFallback((event.target as HTMLInputElement).value);
+                                                            }
+                                                        }}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="border border-white/10 px-3 py-1.5 text-[10px] tracking-[0.14em] text-[#79c0ff] transition-colors hover:bg-white/[0.03]"
+                                                        onClick={() => openFontBrowser("fallback")}
+                                                    >
+                                                        {fontBrowserOpen === "fallback" ? "HIDE" : "BROWSE"}
+                                                    </button>
+                                                </div>
+                                                {fontBrowserOpen === "fallback" ? (
+                                                    <div className="mt-3 rounded-md border border-white/10 bg-black/20 p-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="text"
+                                                                value={fontSearchInput}
+                                                                placeholder="Filter fonts"
+                                                                className="min-w-0 flex-1 border-0 border-b border-white/15 bg-transparent px-0 py-1 text-[12px] text-[#f2eee8] outline-none transition-colors placeholder:text-[#8e877f] focus:border-[#79c0ff]"
+                                                                onChange={(event) => setFontSearchInput(event.target.value)}
+                                                            />
+                                                            <div className="text-[10px] tracking-[0.12em] text-[#8e877f]">
+                                                                {fontsLoading
+                                                                    ? "LOADING"
+                                                                    : fontSourceState === "ready"
+                                                                      ? `${installedFontOptions.length} INSTALLED`
+                                                                      : fontSourceState === "unsupported"
+                                                                        ? "FALLBACK"
+                                                                        : fontSourceState === "error"
+                                                                          ? "UNAVAILABLE"
+                                                                          : ""}
+                                                            </div>
+                                                        </div>
+                                                        <div className="mt-2 max-h-56 overflow-y-auto">
+                                                            {visibleFontOptions.length === 0 ? (
+                                                                <div className="py-3 text-[11px] text-[#8e877f] uppercase">
+                                                                    No matching fonts
+                                                                </div>
+                                                            ) : (
+                                                                visibleFontOptions.map((fontName) => {
+                                                                    const isInstalled = installedFontOptions.some(
+                                                                        (font) => font.family === fontName
+                                                                    );
+                                                                    const isSelected = isSelectedFont(fontName);
+                                                                    return (
+                                                                        <button
+                                                                            key={`fallback-${fontName}`}
                                                                             type="button"
                                                                             className={clsx(
                                                                                 "flex w-full flex-col items-start gap-1 border-b border-white/6 px-0 py-2 text-left transition-colors hover:bg-white/[0.03]",

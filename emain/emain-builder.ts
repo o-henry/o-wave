@@ -57,7 +57,7 @@ export async function createBuilderWindow(appId: string): Promise<BuilderWindowT
         height: winBounds.height,
         minWidth: MinWindowWidth,
         minHeight: MinWindowHeight,
-        titleBarStyle: unamePlatform === "darwin" ? "hiddenInset" : "default",
+        titleBarStyle: unamePlatform === "darwin" ? "hidden" : "default",
         icon:
             unamePlatform === "linux"
                 ? path.join(getElectronAppBasePath(), "public/logos/wave-logo-dark.png")
@@ -86,6 +86,9 @@ export async function createBuilderWindow(appId: string): Promise<BuilderWindowT
     typedBuilderWindow.builderId = builderId;
     typedBuilderWindow.builderAppId = appId;
     typedBuilderWindow.savedInitOpts = initOpts;
+    if (unamePlatform === "darwin") {
+        typedBuilderWindow.setWindowButtonVisibility(false);
+    }
 
     typedBuilderWindow.on("focus", () => {
         focusedBuilderWindow = typedBuilderWindow;

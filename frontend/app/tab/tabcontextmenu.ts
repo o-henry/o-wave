@@ -32,6 +32,12 @@ export function buildTabBarContextMenu(env: TabEnv): ContextMenuItem[] {
             checked: currentTabBar === "left",
             click: () => fireAndForget(() => env.rpc.SetConfigCommand(TabRpcClient, { "app:tabbar": "left" })),
         },
+        {
+            label: "Bottom",
+            type: "checkbox",
+            checked: currentTabBar === "bottom",
+            click: () => fireAndForget(() => env.rpc.SetConfigCommand(TabRpcClient, { "app:tabbar": "bottom" })),
+        },
     ];
     return [{ label: "Tab Bar Position", type: "submenu", submenu: tabBarSubmenu }];
 }

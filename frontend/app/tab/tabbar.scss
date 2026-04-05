@@ -2,20 +2,46 @@
 // SPDX-License-Identifier: Apache-2.0
 
 .tab-bar-wrapper {
-    padding-top: 3px;
+    padding: 2px 0;
     position: relative;
     user-select: none;
     display: flex;
     flex-direction: row;
-    align-items: end;
+    align-items: center;
     width: 100vw;
     -webkit-app-region: drag;
-    height: max(33px, calc(33px * var(--zoomfactor-inv)));
+    height: max(30px, calc(30px * var(--zoomfactor-inv)));
     backdrop-filter: blur(20px);
     background: var(--term-header-bg, rgba(0, 0, 0, 0.35));
     color: var(--term-header-fg, var(--main-text-color));
     border-bottom: 1px solid var(--term-header-border, var(--border-color));
     flex-shrink: 0;
+
+    &.tab-bar-bottom {
+        padding-top: 1px;
+        padding-bottom: 3px;
+        border-bottom: 0;
+        border-top: 1px solid rgb(from var(--main-text-color) r g b / 0.08);
+    }
+
+    .tabbar-left-icon-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        min-width: 18px;
+        height: 100%;
+        margin-left: 0;
+        margin-right: 8px;
+    }
+
+    .tabbar-left-icon {
+        display: block;
+        width: 15px;
+        height: 15px;
+        background-color: rgb(from var(--main-text-color) r g b / 0.52);
+        opacity: 0.95;
+    }
 
     button {
         -webkit-app-region: no-drag;
@@ -23,16 +49,16 @@
 
     .tabs-wrapper {
         transition: var(--tabs-wrapper-transition);
-        height: 26px;
+        height: 20px;
     }
 
     .tab-bar {
         position: relative; // Needed for absolute positioning of child tabs
         display: flex;
         flex-direction: row;
-        height: 27px;
+        height: 20px;
         -webkit-app-region: no-drag;
-        margin-bottom: 1px;
+        margin-bottom: 0;
     }
 
     .pinned-tab-spacer {
@@ -44,8 +70,8 @@
 
     .add-tab {
         padding: 0 10px;
-        height: 27px;
-        margin-bottom: 2.25px;
+        height: 20px;
+        margin-bottom: 0;
         color: var(--term-header-icon, var(--secondary-text-color));
 
         &:hover {

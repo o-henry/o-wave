@@ -49,6 +49,7 @@ const WorkspaceElem = memo(() => {
     const tabBarPosition = useAtomValue(getSettingsKeyAtom("app:tabbar")) ?? "top";
     const termThemeName = useAtomValue(getSettingsKeyAtom("term:theme")) ?? DefaultTermTheme;
     const showLeftTabBar = tabBarPosition === "left";
+    const showBottomTabBar = tabBarPosition === "bottom";
     const aiPanelVisible = useAtomValue(workspaceLayoutModel.panelVisibleAtom);
     const widgetsSidebarVisible = useAtomValue(workspaceLayoutModel.widgetsSidebarVisibleAtom);
     const windowWidth = window.innerWidth;
@@ -107,14 +108,16 @@ const WorkspaceElem = memo(() => {
     }, []);
 
     const innerHandleVisible = showLeftTabBar && aiPanelVisible;
-    const innerHandleClass = `bg-transparent hover:bg-zinc-500/20 transition-colors ${innerHandleVisible ? "w-0.5" : "w-0 pointer-events-none"}`;
+    const innerHandleClass = `bg-transparent hover:bg-zinc-500/20 transition-colors ${innerHandleVisible ? "relative z-10 w-px -mx-px" : "w-0 pointer-events-none"}`;
     const outerHandleVisible = showLeftTabBar || aiPanelVisible;
-    const outerHandleClass = `bg-transparent hover:bg-zinc-500/20 transition-colors ${outerHandleVisible ? "w-0.5" : "w-0 pointer-events-none"}`;
+    const outerHandleClass = `bg-transparent hover:bg-zinc-500/20 transition-colors ${outerHandleVisible ? "relative z-10 w-px -mx-px" : "w-0 pointer-events-none"}`;
     const tabChromeVars = computeThemeChromeVars(fullConfig, termThemeName, 0) as React.CSSProperties;
 
     return (
         <div className="flex flex-col w-full flex-grow overflow-hidden" style={tabChromeVars}>
-            {!(showLeftTabBar && isMacOS()) && <TabBar key={ws.oid} workspace={ws} noTabs={showLeftTabBar} />}
+            {!showBottomTabBar && !(showLeftTabBar && isMacOS()) && (
+                <TabBar key={ws.oid} workspace={ws} noTabs={showLeftTabBar} position="top" />
+            )}
             {showLeftTabBar && isMacOS() && <MacOSTabBarSpacer />}
             <div ref={panelContainerRef} className="flex flex-row flex-grow overflow-hidden">
                 <ErrorBoundary key={tabId}>
@@ -172,6 +175,7 @@ const WorkspaceElem = memo(() => {
                     <ModalsRenderer />
                 </ErrorBoundary>
             </div>
+            {showBottomTabBar && <TabBar key={ws.oid} workspace={ws} noTabs={false} position="bottom" />}
         </div>
     );
 });

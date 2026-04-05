@@ -67,7 +67,7 @@
         min-height: 0;
         overflow: hidden;
         line-height: 1;
-        margin: 1px;
+        margin: 0;
         border-radius: 0 !important;
     }
 
@@ -145,7 +145,7 @@
         }
 
         .xterm-viewport {
-            background-color: transparent;
+            background-color: var(--term-block-bg-solid, transparent);
         }
     }
 }
