@@ -5,6 +5,7 @@ import { RpcApi } from "@/app/store/wshclientapi";
 import * as electron from "electron";
 import { focusedBuilderWindow, getAllBuilderWindows } from "emain/emain-builder";
 import { globalEvents } from "emain/emain-events";
+import { existsSync } from "fs";
 import path from "path";
 import { sprintf } from "sprintf-js";
 import * as services from "../frontend/app/store/services";
@@ -62,6 +63,19 @@ import { configureAutoUpdater, updater } from "./updater";
 const electronApp = electron.app;
 
 let confirmQuit = true;
+
+function getDockIconPath(): string | null {
+    const candidates = [
+        path.join(getElectronAppBasePath(), "frontend", "logos", "app-dock-icon.png"),
+        path.join(getElectronAppBasePath(), "frontend", "logos", "wave-logo-dark.png"),
+    ];
+    for (const candidate of candidates) {
+        if (existsSync(candidate)) {
+            return candidate;
+        }
+    }
+    return null;
+}
 
 const waveDataDir = getWaveDataDir();
 const waveConfigDir = getWaveConfigDir();
@@ -400,8 +414,10 @@ async function appMain() {
     console.log("wavesrv ready signal received", ready, Date.now() - startTs, "ms");
     await electronApp.whenReady();
     if (unamePlatform === "darwin") {
-        const dockIconPath = path.join(getElectronAppBasePath(), "public", "logos", "app-dock-icon.png");
-        electronApp.dock.setIcon(dockIconPath);
+        const dockIconPath = getDockIconPath();
+        if (dockIconPath) {
+            electronApp.dock.setIcon(dockIconPath);
+        }
     }
     configureAuthKeyRequestInjection(electron.session.defaultSession);
     initIpcHandlers();
