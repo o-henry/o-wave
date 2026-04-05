@@ -5,6 +5,7 @@ import { RpcApi } from "@/app/store/wshclientapi";
 import * as electron from "electron";
 import { focusedBuilderWindow, getAllBuilderWindows } from "emain/emain-builder";
 import { globalEvents } from "emain/emain-events";
+import path from "path";
 import { sprintf } from "sprintf-js";
 import * as services from "../frontend/app/store/services";
 import { initElectronWshrpc, shutdownWshrpc } from "../frontend/app/store/wshrpcutil-base";
@@ -398,6 +399,10 @@ async function appMain() {
     const ready = await getWaveSrvReady();
     console.log("wavesrv ready signal received", ready, Date.now() - startTs, "ms");
     await electronApp.whenReady();
+    if (unamePlatform === "darwin") {
+        const dockIconPath = path.join(getElectronAppBasePath(), "public", "logos", "app-dock-icon.png");
+        electronApp.dock.setIcon(dockIconPath);
+    }
     configureAuthKeyRequestInjection(electron.session.defaultSession);
     initIpcHandlers();
 

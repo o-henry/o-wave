@@ -264,6 +264,9 @@
 /* xterm.js customization: Override xterm's cursor style */
 .xterm .xterm-scrollable-element > .scrollbar {
     cursor: default;
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 /* Arrows */
@@ -293,7 +296,17 @@
 /* Scrollable Content Inset Shadow */
 .xterm .xterm-scrollable-element > .shadow {
 	position: absolute;
-	display: none;
+	display: none !important;
+}
+
+.xterm .xterm-viewport {
+    scrollbar-width: none;
+}
+
+.xterm .xterm-viewport::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
 }
 .xterm .xterm-scrollable-element > .shadow.top {
 	display: block;
