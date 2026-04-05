@@ -321,7 +321,7 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
         const termCursorStyle = normalizeCursorStyle(globalStore.get(getOverrideConfigAtom(blockId, "term:cursor")));
         const termCursorBlink = globalStore.get(getOverrideConfigAtom(blockId, "term:cursorblink")) ?? false;
         const termFontFamily = buildTerminalFontFamilyStack(
-            termSettings?.["term:fontfamily"] ?? connFontFamily ?? "DMMono Nerd Font",
+            termSettings?.["term:fontfamily"] ?? connFontFamily ?? "1984 Body",
             termSettings?.["term:fontfallback"]
         );
         const forceDomRenderer = blockData?.meta?.controller === "cmd";
