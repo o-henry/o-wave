@@ -45,6 +45,7 @@ const config = {
         "dist/schema/**/*", // schema files for Monaco editor
     ],
     mac: {
+        icon: "build/icon.icns",
         target: [
             {
                 target: "zip",
