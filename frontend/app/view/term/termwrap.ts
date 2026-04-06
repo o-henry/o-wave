@@ -574,11 +574,6 @@ export class TermWrap {
             const decodedData = new TextDecoder().decode(data);
             sanitizedData = stripItalicSgrSequences(decodedData);
         }
-        const shellState = globalStore.get(this.shellIntegrationStatusAtom);
-        const lastCommand = globalStore.get(this.lastCommandAtom);
-        if (typeof sanitizedData === "string" && shellState === "running-command" && isCodexCommand(lastCommand)) {
-            sanitizedData = stripBackgroundSgrSequences(sanitizedData);
-        }
         if (isDev() && this.loaded) {
             const dataStr = typeof sanitizedData === "string" ? sanitizedData : new TextDecoder().decode(sanitizedData);
             this.recentWrites.push({ idx: this.recentWritesCounter++, ts: Date.now(), data: dataStr });
