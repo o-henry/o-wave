@@ -324,7 +324,7 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
             termSettings?.["term:fontfamily"] ?? connFontFamily ?? "1984 Body",
             termSettings?.["term:fontfallback"]
         );
-        const forceDomRenderer = blockData?.meta?.controller === "cmd";
+        const forceDomRenderer = false;
         const wasFocused = model.termRef.current != null && globalStore.get(model.nodeModel.isFocused);
         const termWrap = new TermWrap(
             tabModel.tabId,

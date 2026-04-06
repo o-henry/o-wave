@@ -66,6 +66,84 @@ function detectWebGLSupport(): boolean {
 export const WebGLSupported = detectWebGLSupport();
 let loggedWebGL = false;
 
+const CodexCommandRegex = /^codex\b/;
+
+function stripItalicSgrSequences(data: string): string {
+    if (!data.includes("\x1b[")) {
+        return data;
+    }
+    return data.replace(/\x1b\[([0-9;]*)m/g, (fullMatch, params) => {
+        if (params === "") {
+            return fullMatch;
+        }
+        const filteredParams = params
+            .split(";")
+            .filter((param) => param !== "3" && param !== "23" && param !== "");
+        if (filteredParams.length === 0) {
+            return "";
+        }
+        return `\x1b[${filteredParams.join(";")}m`;
+    });
+}
+
+function normalizeCommandForTerminalEffects(command: string): string {
+    let normalizedCommand = command.trim();
+    normalizedCommand = normalizedCommand.replace(/^env\s+/, "");
+    normalizedCommand = normalizedCommand.replace(/^(?:\w+=(?:"[^"]*"|'[^']*'|\S+)\s+)*/, "");
+    return normalizedCommand;
+}
+
+function isCodexCommand(command: string | null | undefined): boolean {
+    if (!command) {
+        return false;
+    }
+    return CodexCommandRegex.test(normalizeCommandForTerminalEffects(command));
+}
+
+function stripBackgroundSgrSequences(data: string): string {
+    if (!data.includes("\x1b[")) {
+        return data;
+    }
+    return data.replace(/\x1b\[([0-9;]*)m/g, (fullMatch, params) => {
+        if (params === "") {
+            return fullMatch;
+        }
+        const rawParams = params.split(";").filter((param) => param !== "");
+        const filteredParams: string[] = [];
+        for (let index = 0; index < rawParams.length; index += 1) {
+            const param = rawParams[index];
+            const numericParam = Number(param);
+            if (!Number.isFinite(numericParam)) {
+                filteredParams.push(param);
+                continue;
+            }
+            if (numericParam === 49) {
+                continue;
+            }
+            if ((numericParam >= 40 && numericParam <= 47) || (numericParam >= 100 && numericParam <= 107)) {
+                continue;
+            }
+            if (numericParam === 48) {
+                const mode = rawParams[index + 1];
+                if (mode === "5") {
+                    index += 2;
+                    continue;
+                }
+                if (mode === "2") {
+                    index += 4;
+                    continue;
+                }
+                continue;
+            }
+            filteredParams.push(param);
+        }
+        if (filteredParams.length === 0) {
+            return "";
+        }
+        return `\x1b[${filteredParams.join(";")}m`;
+    });
+}
+
 type TermWrapOptions = {
     keydownHandler?: (e: KeyboardEvent) => boolean;
     useWebGl?: boolean;
@@ -489,8 +567,20 @@ export class TermWrap {
     }
 
     doTerminalWrite(data: string | Uint8Array, setPtyOffset?: number): Promise<void> {
+        let sanitizedData: string | Uint8Array = data;
+        if (typeof data === "string") {
+            sanitizedData = stripItalicSgrSequences(data);
+        } else {
+            const decodedData = new TextDecoder().decode(data);
+            sanitizedData = stripItalicSgrSequences(decodedData);
+        }
+        const shellState = globalStore.get(this.shellIntegrationStatusAtom);
+        const lastCommand = globalStore.get(this.lastCommandAtom);
+        if (typeof sanitizedData === "string" && shellState === "running-command" && isCodexCommand(lastCommand)) {
+            sanitizedData = stripBackgroundSgrSequences(sanitizedData);
+        }
         if (isDev() && this.loaded) {
-            const dataStr = data instanceof Uint8Array ? new TextDecoder().decode(data) : data;
+            const dataStr = typeof sanitizedData === "string" ? sanitizedData : new TextDecoder().decode(sanitizedData);
             this.recentWrites.push({ idx: this.recentWritesCounter++, ts: Date.now(), data: dataStr });
             if (this.recentWrites.length > 50) {
                 this.recentWrites.shift();
@@ -500,7 +590,7 @@ export class TermWrap {
         const prtn = new Promise<void>((presolve, _) => {
             resolve = presolve;
         });
-        this.terminal.write(data, () => {
+        this.terminal.write(sanitizedData, () => {
             if (setPtyOffset != null) {
                 this.ptyOffset = setPtyOffset;
             } else {
