@@ -323,6 +323,7 @@ export function handleOsc16162Command(data: string, blockId: string, loaded: boo
             break;
         }
         case "C":
+            termWrap.clearCurrentPromptDecoration();
             handleShellIntegrationCommandStart(termWrap, blockId, cmd, rtInfo);
             break;
         case "M":

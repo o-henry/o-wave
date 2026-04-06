@@ -67,17 +67,18 @@ export const WebGLSupported = detectWebGLSupport();
 let loggedWebGL = false;
 
 const CodexCommandRegex = /^codex\b/;
+const IMEDedupWindowMs = 20;
 
 function stripItalicSgrSequences(data: string): string {
     if (!data.includes("\x1b[")) {
         return data;
     }
-    return data.replace(/\x1b\[([0-9;]*)m/g, (fullMatch, params) => {
+    return data.replace(/\x1b\[([0-9:;]*)m/g, (fullMatch, params) => {
         if (params === "") {
             return fullMatch;
         }
         const filteredParams = params
-            .split(";")
+            .split(/[;:]/)
             .filter((param) => param !== "3" && param !== "23" && param !== "");
         if (filteredParams.length === 0) {
             return "";
@@ -100,15 +101,25 @@ function isCodexCommand(command: string | null | undefined): boolean {
     return CodexCommandRegex.test(normalizeCommandForTerminalEffects(command));
 }
 
+function looksLikeCodexOutput(data: string): boolean {
+    return (
+        data.includes("OpenAI Codex") ||
+        data.includes("codex/settings/usage") ||
+        data.includes("/status") ||
+        data.includes("/model to change") ||
+        data.includes("reasoning medium")
+    );
+}
+
 function stripBackgroundSgrSequences(data: string): string {
     if (!data.includes("\x1b[")) {
         return data;
     }
-    return data.replace(/\x1b\[([0-9;]*)m/g, (fullMatch, params) => {
+    return data.replace(/\x1b\[([0-9:;]*)m/g, (fullMatch, params) => {
         if (params === "") {
             return fullMatch;
         }
-        const rawParams = params.split(";").filter((param) => param !== "");
+        const rawParams = params.split(/[;:]/).filter((param) => param !== "");
         const filteredParams: string[] = [];
         for (let index = 0; index < rawParams.length; index += 1) {
             const param = rawParams[index];
@@ -117,7 +128,7 @@ function stripBackgroundSgrSequences(data: string): string {
                 filteredParams.push(param);
                 continue;
             }
-            if (numericParam === 49) {
+            if (numericParam === 49 || numericParam === 7 || numericParam === 27) {
                 continue;
             }
             if ((numericParam >= 40 && numericParam <= 47) || (numericParam >= 100 && numericParam <= 107)) {
@@ -176,6 +187,8 @@ export class TermWrap {
     pasteActive: boolean = false;
     lastUpdated: number;
     promptMarkers: TermTypes.IMarker[] = [];
+    currentPromptHighlightActive: boolean = false;
+    currentPromptHighlightEl: HTMLDivElement | null = null;
     shellIntegrationStatusAtom: jotai.PrimitiveAtom<ShellIntegrationStatus | null>;
     lastCommandAtom: jotai.PrimitiveAtom<string | null>;
     claudeCodeActiveAtom: jotai.PrimitiveAtom<boolean>;
@@ -187,6 +200,13 @@ export class TermWrap {
     // xterm.js paste() method triggers onData event, which can cause duplicate sends
     lastPasteData: string = "";
     lastPasteTime: number = 0;
+
+    // IME composition tracking
+    isComposing: boolean = false;
+    composingData: string = "";
+    lastCompositionEnd: number = 0;
+    lastComposedText: string = "";
+    firstDataAfterCompositionSent: boolean = false;
 
     // dev only (for debugging)
     recentWrites: { idx: number; data: string; ts: number }[] = [];
@@ -349,6 +369,9 @@ export class TermWrap {
             })
         );
         this.terminal.attachCustomKeyEventHandler((e: KeyboardEvent) => {
+            if (e.isComposing && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                return true;
+            }
             if (!waveOptions.keydownHandler) {
                 return true;
             }
@@ -392,6 +415,17 @@ export class TermWrap {
             },
         });
         this.handleResize();
+        this.terminal.textarea.addEventListener("compositionstart", this.handleCompositionStart);
+        this.terminal.textarea.addEventListener("compositionupdate", this.handleCompositionUpdate);
+        this.terminal.textarea.addEventListener("compositionend", this.handleCompositionEnd);
+        this.terminal.textarea.addEventListener("blur", () => {
+            if (this.isComposing) {
+                this.resetCompositionState();
+            }
+        });
+        this.toDispose.push(this.terminal.onRender(() => this.updateCurrentPromptHighlight()));
+        this.toDispose.push(this.terminal.onScroll(() => this.updateCurrentPromptHighlight()));
+        this.toDispose.push(this.terminal.onResize(() => this.updateCurrentPromptHighlight()));
         const pasteHandler = this.pasteHandler.bind(this);
         this.connectElem.addEventListener("paste", pasteHandler, true);
         this.toDispose.push({
@@ -400,6 +434,85 @@ export class TermWrap {
             },
         });
     }
+
+    resetCompositionState = () => {
+        this.isComposing = false;
+        this.composingData = "";
+        this.lastComposedText = "";
+        this.firstDataAfterCompositionSent = false;
+    };
+
+    clearCurrentPromptDecoration() {
+        this.currentPromptHighlightActive = false;
+        if (this.currentPromptHighlightEl) {
+            this.currentPromptHighlightEl.style.display = "none";
+        }
+    }
+
+    ensureCurrentPromptHighlightEl(): HTMLDivElement | null {
+        if (this.currentPromptHighlightEl) {
+            return this.currentPromptHighlightEl;
+        }
+        const screenEl = this.connectElem.querySelector(".xterm-screen") as HTMLDivElement | null;
+        if (!screenEl) {
+            return null;
+        }
+        const highlightEl = document.createElement("div");
+        highlightEl.className = "xterm-current-prompt-highlight";
+        highlightEl.style.display = "none";
+        screenEl.insertBefore(highlightEl, screenEl.firstChild);
+        this.currentPromptHighlightEl = highlightEl;
+        return highlightEl;
+    }
+
+    updateCurrentPromptHighlight() {
+        const highlightEl = this.ensureCurrentPromptHighlightEl();
+        const shellState = globalStore.get(this.shellIntegrationStatusAtom);
+        const lastCommand = globalStore.get(this.lastCommandAtom);
+        const codexActive = shellState === "running-command" && isCodexCommand(lastCommand);
+        if (!highlightEl || !codexActive) {
+            if (highlightEl) {
+                highlightEl.style.display = "none";
+            }
+            return;
+        }
+        const screenEl = this.connectElem.querySelector(".xterm-screen") as HTMLDivElement | null;
+        const cursorEl = this.connectElem.querySelector(".xterm-cursor") as HTMLElement | null;
+        const rowEl = cursorEl?.parentElement as HTMLElement | null;
+        if (!screenEl || !rowEl) {
+            highlightEl.style.display = "none";
+            return;
+        }
+        highlightEl.style.display = "block";
+        highlightEl.style.left = "0";
+        highlightEl.style.right = "0";
+        highlightEl.style.top = `${rowEl.offsetTop}px`;
+        highlightEl.style.height = `${rowEl.offsetHeight}px`;
+    }
+
+    setCurrentPromptDecoration(_inputStartX: number) {
+        this.currentPromptHighlightActive = true;
+        this.updateCurrentPromptHighlight();
+    }
+
+    handleCompositionStart = () => {
+        this.isComposing = true;
+        this.composingData = "";
+        this.lastComposedText = "";
+        this.firstDataAfterCompositionSent = false;
+    };
+
+    handleCompositionUpdate = (event: CompositionEvent) => {
+        this.composingData = event.data ?? "";
+    };
+
+    handleCompositionEnd = (event: CompositionEvent) => {
+        this.lastCompositionEnd = Date.now();
+        this.lastComposedText = event.data ?? this.composingData ?? "";
+        this.composingData = "";
+        this.isComposing = false;
+        this.firstDataAfterCompositionSent = false;
+    };
 
     getZoneId(): string {
         return this.blockId;
@@ -515,6 +628,11 @@ export class TermWrap {
     }
 
     dispose() {
+        this.clearCurrentPromptDecoration();
+        if (this.currentPromptHighlightEl) {
+            this.currentPromptHighlightEl.remove();
+            this.currentPromptHighlightEl = null;
+        }
         this.promptMarkers.forEach((marker) => {
             try {
                 marker.dispose();

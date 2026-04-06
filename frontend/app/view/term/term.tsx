@@ -348,7 +348,7 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
             },
             {
                 keydownHandler: model.handleTerminalKeydown.bind(model),
-                useWebGl: !termSettings?.["term:disablewebgl"] && !forceDomRenderer,
+                useWebGl: false,
                 sendDataHandler: model.sendDataToController.bind(model),
                 nodeModel: model.nodeModel,
             }

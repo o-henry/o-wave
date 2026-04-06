@@ -51,6 +51,10 @@
 .xterm .xterm-helpers {
     position: absolute;
     top: 0;
+    left: 0;
+    right: 0;
+    padding-left: 8px;
+    box-sizing: border-box;
     /**
      * The z-index of the helpers must be higher than the canvases in order for
      * IMEs to appear on top.
@@ -77,13 +81,14 @@
 }
 
 .xterm .composition-view {
-    /* TODO: Composition position got messed up somewhere */
-    background: #000;
-    color: #FFF;
+    background: transparent;
+    color: inherit;
     display: none;
     position: absolute;
     white-space: nowrap;
     z-index: 1;
+    border-radius: 0;
+    padding: 0;
 }
 
 .xterm .composition-view.active {
@@ -104,19 +109,26 @@
 
 .xterm .xterm-screen {
     position: relative;
+    padding-left: 8px;
+    box-sizing: border-box;
+}
+
+.xterm .xterm-rows {
+    position: relative;
+    z-index: 1;
+}
+
+.xterm-current-prompt-highlight {
+    position: absolute;
+    background: #4a5058;
+    pointer-events: none;
+    z-index: 0;
 }
 
 .xterm .xterm-screen canvas {
     position: absolute;
     left: 0;
     top: 0;
-    padding-left: 8px;
-    box-sizing: border-box;
-}
-
-.xterm .xterm-rows {
-    padding-left: 8px;
-    box-sizing: border-box;
 }
 
 .xterm-char-measure-element {
