@@ -10,7 +10,7 @@
     "version": "0.14.4",
     "homepage": "https://github.com/wavetermdev/waveterm",
     "build": {
-        "appId": "dev.commandline.shib"
+        "appId": "dev.commandline.waveterm"
     },
     "private": true,
     "main": "./dist/main/index.js",

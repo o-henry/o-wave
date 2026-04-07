@@ -322,12 +322,15 @@ const BlockFrame_Header = ({
 
     return (
         <div
-            className={cn("block-frame-default-header", useTermHeader && "term-header-minimal !pl-[2px]")}
+            className={cn(
+                "block-frame-default-header",
+                isTerminalBlock && "term-header-minimal !pl-[2px]"
+            )}
             data-role="block-header"
             ref={dragHandleRef}
             onContextMenu={(e) => handleHeaderContextMenu(e, nodeModel.blockId, viewModel, nodeModel, waveEnv)}
         >
-            {!useTermHeader && (
+            {!useTermHeader && !isTerminalBlock && (
                 <>
                     {preIconButton && <IconButton decl={preIconButton} className="block-frame-preicon-button" />}
                     {showIconViewSection && (
@@ -338,7 +341,7 @@ const BlockFrame_Header = ({
                     )}
                 </>
             )}
-            {manageConnection && !useTermHeader && (
+            {manageConnection && !isTerminalBlock && (
                 <ConnectionButton
                     ref={connBtnRef}
                     key="connbutton"
