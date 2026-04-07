@@ -38,6 +38,9 @@
 .xterm {
     cursor: text;
     position: relative;
+    box-sizing: border-box;
+    padding-left: 8px;
+    padding-right: 8px;
     user-select: none;
     -ms-user-select: none;
     -webkit-user-select: none;
@@ -53,7 +56,7 @@
     top: 0;
     left: 0;
     right: 0;
-    padding-left: 8px;
+    padding-left: 0;
     box-sizing: border-box;
     /**
      * The z-index of the helpers must be higher than the canvases in order for
@@ -109,13 +112,12 @@
 
 .xterm .xterm-screen {
     position: relative;
-    padding-left: 8px;
     box-sizing: border-box;
 }
 
 .xterm .xterm-rows {
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 .xterm-current-prompt-highlight {
@@ -169,6 +171,12 @@
 
 .xterm .xterm-accessibility-tree:not(.debug) *::selection {
   color: transparent;
+  background-color: rgb(from var(--accent-color) r g b / 0.24);
+}
+
+.xterm .xterm-accessibility-tree:not(.debug) *::-moz-selection {
+  color: transparent;
+  background-color: rgb(from var(--accent-color) r g b / 0.24);
 }
 
 .xterm .xterm-accessibility-tree {
@@ -180,6 +188,11 @@
 .xterm .xterm-accessibility-tree > div {
   transform-origin: left;
   width: fit-content;
+}
+
+.xterm .xterm-selection div,
+.xterm.focus .xterm-selection div {
+    background-color: rgba(214, 231, 255, 0.32) !important;
 }
 
 .xterm .live-region {

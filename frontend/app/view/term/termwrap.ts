@@ -575,6 +575,7 @@ export class TermWrap {
         this.toDispose.push(
             this.terminal.onSelectionChange(
                 debounce(50, () => {
+                    const selectedText = this.terminal.getSelection();
                     if (!globalStore.get(copyOnSelectAtom)) {
                         return;
                     }
@@ -584,7 +585,6 @@ export class TermWrap {
                     if (active != null && active.closest(".search-container") != null) {
                         return;
                     }
-                    const selectedText = this.terminal.getSelection();
                     if (selectedText.length > 0) {
                         navigator.clipboard.writeText(selectedText);
                     }

@@ -1,16 +1,16 @@
 {
-    "name": "waveterm",
+    "name": "shib",
     "author": {
         "name": "Command Line Inc",
         "email": "info@commandline.dev"
     },
-    "productName": "WAVE",
-    "description": "Open-Source AI-Native Terminal Built for Seamless Workflows",
+    "productName": "SHIB",
+    "description": "AI-native terminal for fast, focused workflows",
     "license": "Apache-2.0",
     "version": "0.14.4",
-    "homepage": "https://waveterm.dev",
+    "homepage": "https://github.com/wavetermdev/waveterm",
     "build": {
-        "appId": "dev.commandline.waveterm"
+        "appId": "dev.commandline.shib"
     },
     "private": true,
     "main": "./dist/main/index.js",

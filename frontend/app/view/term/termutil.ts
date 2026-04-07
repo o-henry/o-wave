@@ -68,7 +68,6 @@ export function computeThemeChromeVars(
     const baseBackground = bgColor ?? theme.background ?? "#000000";
     const baseForeground = theme.cmdtext ?? theme.foreground ?? "#ffffff";
     const isLight = isThemeBackgroundLight(baseBackground);
-
     return {
         "--term-header-bg": baseBackground,
         "--term-header-fg": baseForeground,

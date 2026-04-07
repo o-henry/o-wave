@@ -1381,6 +1381,7 @@ declare global {
         "app:ctrlvpaste"?: boolean;
         "app:confirmquit"?: boolean;
         "app:hideaibutton"?: boolean;
+        "app:bottombarvisible"?: boolean;
         "app:disablectrlshiftarrows"?: boolean;
         "app:disablectrlshiftdisplay"?: boolean;
         "app:focusfollowscursor"?: string;
@@ -1405,6 +1406,7 @@ declare global {
         "term:*"?: boolean;
         "term:fontsize"?: number;
         "term:fontfamily"?: string;
+        "term:fontfallback"?: string;
         "term:theme"?: string;
         "term:disablewebgl"?: boolean;
         "term:localshellpath"?: string;

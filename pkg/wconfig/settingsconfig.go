@@ -65,6 +65,7 @@ type SettingsType struct {
 	AppCtrlVPaste                 *bool  `json:"app:ctrlvpaste,omitempty"`
 	AppConfirmQuit                *bool  `json:"app:confirmquit,omitempty"`
 	AppHideAiButton               bool   `json:"app:hideaibutton,omitempty"`
+	AppBottomBarVisible           *bool  `json:"app:bottombarvisible,omitempty"`
 	AppDisableCtrlShiftArrows     bool   `json:"app:disablectrlshiftarrows,omitempty"`
 	AppDisableCtrlShiftDisplay    bool   `json:"app:disablectrlshiftdisplay,omitempty"`
 	AppFocusFollowsCursor         string `json:"app:focusfollowscursor,omitempty" jsonschema:"enum=off,enum=on,enum=term"`
@@ -93,6 +94,7 @@ type SettingsType struct {
 	TermClear               bool     `json:"term:*,omitempty"`
 	TermFontSize            float64  `json:"term:fontsize,omitempty"`
 	TermFontFamily          string   `json:"term:fontfamily,omitempty"`
+	TermFontFallback        string   `json:"term:fontfallback,omitempty"`
 	TermTheme               string   `json:"term:theme,omitempty"`
 	TermDisableWebGl        bool     `json:"term:disablewebgl,omitempty"`
 	TermLocalShellPath      string   `json:"term:localshellpath,omitempty"`

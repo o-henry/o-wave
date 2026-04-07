@@ -3,6 +3,7 @@
 
 import { WaveAIModel } from "@/app/aipanel/waveai-model";
 import { FocusManager } from "@/app/store/focusManager";
+import { RpcApi } from "@/app/store/wshclientapi";
 import {
     atoms,
     createBlock,
@@ -21,6 +22,7 @@ import {
     WOS,
 } from "@/app/store/global";
 import { getActiveTabModel } from "@/app/store/tab-model";
+import { TabRpcClient } from "@/app/store/wshrpcutil";
 import { WorkspaceLayoutModel } from "@/app/workspace/workspace-layout-model";
 import { deleteLayoutModelForTab, getLayoutModelForStaticTab, NavigateDirection } from "@/layout/index";
 import * as keyutil from "@/util/keyutil";
@@ -226,6 +228,15 @@ function genericClose() {
     if (isAIFileDiff && isAIPanelOpen) {
         setTimeout(() => WaveAIModel.getInstance().focusInput(), 50);
     }
+}
+
+function toggleBottomTabBarVisibility() {
+    const currentVisible = globalStore.get(getSettingsKeyAtom("app:bottombarvisible")) ?? true;
+    fireAndForget(() =>
+        RpcApi.SetConfigCommand(TabRpcClient, {
+            "app:bottombarvisible": !currentVisible,
+        } as SettingsType)
+    );
 }
 
 function switchBlockByBlockNum(index: number) {
@@ -639,6 +650,10 @@ function registerGlobalKeys() {
     });
     globalKeyMap.set("Cmd:\\", () => {
         WorkspaceLayoutModel.getInstance().toggleWorkspaceSidebarVisible();
+        return true;
+    });
+    globalKeyMap.set("Cmd:Shift:\\", () => {
+        toggleBottomTabBarVisibility();
         return true;
     });
     globalKeyMap.set("Ctrl:Shift:ArrowUp", () => {

@@ -29,6 +29,9 @@
         "app:hideaibutton": {
           "type": "boolean"
         },
+        "app:bottombarvisible": {
+          "type": "boolean"
+        },
         "app:disablectrlshiftarrows": {
           "type": "boolean"
         },
@@ -109,6 +112,9 @@
           "type": "number"
         },
         "term:fontfamily": {
+          "type": "string"
+        },
+        "term:fontfallback": {
           "type": "string"
         },
         "term:theme": {

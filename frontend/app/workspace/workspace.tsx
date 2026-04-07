@@ -47,9 +47,12 @@ const WorkspaceElem = memo(() => {
     const ws = useAtomValue(atoms.workspace);
     const fullConfig = useAtomValue(atoms.fullConfigAtom);
     const tabBarPosition = useAtomValue(getSettingsKeyAtom("app:tabbar")) ?? "top";
+    const bottomTabBarVisible = useAtomValue(getSettingsKeyAtom("app:bottombarvisible")) ?? true;
     const termThemeName = useAtomValue(getSettingsKeyAtom("term:theme")) ?? DefaultTermTheme;
     const showLeftTabBar = tabBarPosition === "left";
-    const showBottomTabBar = tabBarPosition === "bottom";
+    const tabBarDockedBottom = tabBarPosition === "bottom";
+    const showBottomTabBar = tabBarDockedBottom && bottomTabBarVisible;
+    const showTopTabBar = tabBarPosition === "top";
     const aiPanelVisible = useAtomValue(workspaceLayoutModel.panelVisibleAtom);
     const widgetsSidebarVisible = useAtomValue(workspaceLayoutModel.widgetsSidebarVisibleAtom);
     const windowWidth = window.innerWidth;
@@ -115,7 +118,7 @@ const WorkspaceElem = memo(() => {
 
     return (
         <div className="flex flex-col w-full flex-grow overflow-hidden" style={tabChromeVars}>
-            {!showBottomTabBar && !(showLeftTabBar && isMacOS()) && (
+            {showTopTabBar && !(showLeftTabBar && isMacOS()) && (
                 <TabBar key={ws.oid} workspace={ws} noTabs={showLeftTabBar} position="top" />
             )}
             {showLeftTabBar && isMacOS() && <MacOSTabBarSpacer />}

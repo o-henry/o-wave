@@ -190,6 +190,7 @@ function getShortcutItems(widgets: WidgetConfigType[], featureWaveAppBuilder: bo
         ...(featureWaveAppBuilder ? [{ label: "Local WaveApps", shortcut: "CMD+OPT+A" }] : []),
         { label: "Settings", shortcut: "CMD+," },
         { label: "Workspace Sidebar", shortcut: "CMD+\\" },
+        { label: "Bottom Tab Bar", shortcut: "CMD+SHIFT+\\" },
     ];
     return [
         ...quickAccessItems.map(({ label, shortcut }) => ({ label, shortcut })),
@@ -207,6 +208,7 @@ function getTipsShortcutItems(): { label: string; shortcut: string; note?: strin
         { label: "New Tab", shortcut: "CMD+T" },
         { label: "New Terminal Block", shortcut: "CMD+N" },
         { label: "Open Wave AI Panel", shortcut: "CMD+SHIFT+A" },
+        { label: "Toggle Bottom Tab Bar", shortcut: "CMD+SHIFT+\\" },
         { label: "Switch To Nth Tab", shortcut: "CMD+1..9" },
         { label: "Previous Tab", shortcut: "CMD+[" },
         { label: "Next Tab", shortcut: "CMD+]" },
@@ -426,6 +428,7 @@ const SettingsFloatingWindow = memo(
         const bgImagePath = fullConfig?.settings?.["window:bgimagepath"] ?? "";
         const bgImageOpacity = fullConfig?.settings?.["window:bgimageopacity"] ?? 0.22;
         const termTheme = fullConfig?.settings?.["term:theme"] ?? "";
+        const bottomTabBarVisible = fullConfig?.settings?.["app:bottombarvisible"] ?? true;
         const termFontSize = fullConfig?.settings?.["term:fontsize"];
         const termFontFamily = fullConfig?.settings?.["term:fontfamily"] ?? "";
         const termFontFallback = fullConfig?.settings?.["term:fontfallback"] ?? "";
@@ -757,6 +760,33 @@ const SettingsFloatingWindow = memo(
                                     </div>
                                 </div>
                             )}
+
+                            <div className="mt-5 py-4">
+                                <div className="mb-3 text-[10px] tracking-[0.16em] text-[#8e877f]">LAYOUT</div>
+                                <div className="border-t border-white/8">
+                                    <div className="border-b border-white/8 px-0 py-3">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-[13px] text-[#f2eee8]">BOTTOM TAB BAR</div>
+                                                <div className="mt-1 text-[11px] text-[#8e877f] uppercase">
+                                                    Show or hide the T1 / T2 tab strip when the tab bar is docked at the bottom
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="border border-white/10 px-3 py-1.5 text-[10px] tracking-[0.14em] text-[#79c0ff] transition-colors hover:bg-white/[0.03]"
+                                                onClick={() =>
+                                                    updateConfigValue({
+                                                        "app:bottombarvisible": !bottomTabBarVisible,
+                                                    } as Partial<SettingsType>)
+                                                }
+                                            >
+                                                {bottomTabBarVisible ? "HIDE · CMD+SHIFT+\\" : "SHOW · CMD+SHIFT+\\"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div className="mt-5 py-4">
                                 <div className="mb-3 text-[10px] tracking-[0.16em] text-[#8e877f]">TERMINAL DEFAULTS</div>
