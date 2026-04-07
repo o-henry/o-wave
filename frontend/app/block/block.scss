@@ -176,6 +176,10 @@
                 border-bottom: 1px solid var(--term-header-border, var(--border-color));
                 border-radius: 0 !important;
 
+                &.term-header-minimal {
+                    border-bottom: none;
+                }
+
                 .block-frame-default-header-iconview {
                     display: flex;
                     flex-shrink: 3;

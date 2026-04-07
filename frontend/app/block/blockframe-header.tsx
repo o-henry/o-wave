@@ -322,7 +322,7 @@ const BlockFrame_Header = ({
 
     return (
         <div
-            className={cn("block-frame-default-header", useTermHeader && "!pl-[2px]")}
+            className={cn("block-frame-default-header", useTermHeader && "term-header-minimal !pl-[2px]")}
             data-role="block-header"
             ref={dragHandleRef}
             onContextMenu={(e) => handleHeaderContextMenu(e, nodeModel.blockId, viewModel, nodeModel, waveEnv)}
@@ -338,7 +338,7 @@ const BlockFrame_Header = ({
                     )}
                 </>
             )}
-            {manageConnection && (
+            {manageConnection && !useTermHeader && (
                 <ConnectionButton
                     ref={connBtnRef}
                     key="connbutton"

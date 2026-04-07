@@ -24,7 +24,6 @@ const AIPanel_MaxWidthRatio = 0.66;
 const VTabBar_DefaultWidth = 220;
 const VTabBar_MinWidth = 110;
 const VTabBar_MaxWidth = 280;
-
 function clampVTabWidth(w: number): number {
     return Math.max(VTabBar_MinWidth, Math.min(w, VTabBar_MaxWidth));
 }
