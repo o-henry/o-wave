@@ -2,15 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 .tab-bar-wrapper {
-    padding: 2px 0;
+    // padding: 2px 0;
+    // padding: 2px 0;
     position: relative;
     user-select: none;
+    opacity: 0.9;
     display: flex;
     flex-direction: row;
     align-items: center;
     width: 100vw;
     -webkit-app-region: drag;
-    height: max(30px, calc(30px * var(--zoomfactor-inv)));
+    // height: max(30px, calc(30px * var(--zoomfactor-inv)));
+    height: max(40px, calc(30px * var(--zoomfactor-inv)));
     backdrop-filter: blur(20px);
     background: var(--term-header-bg, rgba(0, 0, 0, 0.35));
     color: var(--term-header-fg, var(--main-text-color));
@@ -55,6 +58,7 @@
     .tab-bar {
         position: relative; // Needed for absolute positioning of child tabs
         display: flex;
+        border-radius: 4px !important;
         flex-direction: row;
         height: 20px;
         -webkit-app-region: no-drag;
