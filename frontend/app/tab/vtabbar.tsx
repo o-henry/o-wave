@@ -6,48 +6,19 @@ import { getTabModelByTabId } from "@/app/store/tab-model";
 import { makeORef } from "@/app/store/wos";
 import { TabRpcClient } from "@/app/store/wshrpcutil";
 import { useWaveEnv } from "@/app/waveenv/waveenv";
-import { WorkspaceLayoutModel } from "@/app/workspace/workspace-layout-model";
 import { validateCssColor } from "@/util/color-validator";
 import { cn, fireAndForget } from "@/util/util";
 import { useAtomValue } from "jotai";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { buildTabBarContextMenu, buildTabContextMenu } from "./tabcontextmenu";
-import { UpdateStatusBanner } from "./updatebanner";
 import { VTab, VTabItem } from "./vtab";
 import { VTabBarEnv } from "./vtabbarenv";
-import { WorkspaceSwitcher } from "./workspaceswitcher";
 export type { VTabItem } from "./vtab";
-
-const MacOSHeader = memo(() => {
-    const env = useWaveEnv<VTabBarEnv>();
-    const isFullScreen = useAtomValue(env.atoms.isFullScreen);
-    return (
-        <>
-            {!isFullScreen && (
-                <div
-                    className="w-full shrink-0"
-                    style={
-                        {
-                            height: "calc(25px * var(--zoomfactor-inv))",
-                            WebkitAppRegion: "drag",
-                        } as React.CSSProperties
-                    }
-                />
-            )}
-            <div
-                className="flex shrink-0 flex-row flex-wrap items-end px-1 pb-1 pl-2"
-                style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
-            >
-                <UpdateStatusBanner />
-            </div>
-        </>
-    );
-});
-MacOSHeader.displayName = "MacOSHeader";
 
 interface VTabBarProps {
     workspace: Workspace;
     className?: string;
+    variant?: "default" | "sidebarpanel";
 }
 
 interface VTabWrapperProps {
@@ -150,9 +121,8 @@ function VTabWrapper({
     );
 }
 
-export function VTabBar({ workspace, className }: VTabBarProps) {
+export function VTabBar({ workspace, className, variant = "default" }: VTabBarProps) {
     const env = useWaveEnv<VTabBarEnv>();
-    const workspaceSidebarVisible = useAtomValue(WorkspaceLayoutModel.getInstance().workspaceSidebarVisibleAtom);
     const activeTabId = useAtomValue(env.atoms.staticTabId);
     const reinitVersion = useAtomValue(env.atoms.reinitVersion);
     const documentHasFocus = useAtomValue(env.atoms.documentHasFocus);
@@ -164,13 +134,13 @@ export function VTabBar({ workspace, className }: VTabBarProps) {
     const [dropLineTop, setDropLineTop] = useState<number | null>(null);
     const [hoverResetVersion, setHoverResetVersion] = useState(0);
     const [hoveredTabId, setHoveredTabId] = useState<string | null>(null);
-    const [isNewTabHovered, setIsNewTabHovered] = useState(false);
     const dragSourceRef = useRef<string | null>(null);
     const didResetHoverForDragRef = useRef(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const scrollAnimFrameRef = useRef<number | null>(null);
     const scrollDirectionRef = useRef<number>(0);
     const scrollSpeedRef = useRef<number>(0);
+    const isSidebarPanel = variant === "sidebarpanel";
 
     useEffect(() => {
         setOrderedTabIds(tabIds);
@@ -297,8 +267,6 @@ export function VTabBar({ workspace, className }: VTabBarProps) {
             style={{ backdropFilter: "blur(20px)", background: "rgba(0, 0, 0, 0.35)" }}
             onContextMenu={handleTabBarContextMenu}
         >
-            {env.isMacOS() && <MacOSHeader />}
-            {workspaceSidebarVisible && <WorkspaceSwitcher mode="panel" />}
             <div
                 ref={scrollContainerRef}
                 className="relative flex min-h-0 flex-col overflow-y-auto"
@@ -321,7 +289,6 @@ export function VTabBar({ workspace, className }: VTabBarProps) {
                 {orderedTabIds.map((tabId, index) => {
                     const isActive = tabId === activeTabId;
                     const isHovered = tabId === hoveredTabId;
-                    const isLast = index === orderedTabIds.length - 1;
                     const nextTabId = orderedTabIds[index + 1];
                     const isNextActive = nextTabId === activeTabId;
                     const isNextHovered = nextTabId === hoveredTabId;
@@ -330,13 +297,7 @@ export function VTabBar({ workspace, className }: VTabBarProps) {
                             key={`${tabId}:${hoverResetVersion}`}
                             tabId={tabId}
                             active={isActive}
-                            showDivider={
-                                !isActive &&
-                                !isNextActive &&
-                                !isHovered &&
-                                !isNextHovered &&
-                                !(isLast && isNewTabHovered)
-                            }
+                            showDivider={!isActive && !isNextActive && !isHovered && !isNextHovered}
                             isDragging={dragTabId === tabId}
                             isReordering={dragTabId != null}
                             hoverResetVersion={hoverResetVersion}
@@ -387,32 +348,6 @@ export function VTabBar({ workspace, className }: VTabBarProps) {
                     />
                 )}
             </div>
-            <button
-                type="button"
-                className="group relative flex h-9 w-full shrink-0 cursor-pointer items-center gap-1.5 pl-3 pr-3 text-xs text-secondary/60 transition-colors hover:text-primary select-none whitespace-nowrap"
-                onClick={() => env.electron.createTab()}
-                onMouseEnter={() => setIsNewTabHovered(true)}
-                onMouseLeave={() => setIsNewTabHovered(false)}
-                aria-label="New Tab"
-            >
-                <div className="pointer-events-none absolute inset-x-1 inset-y-[4px] bg-transparent transition-colors group-hover:bg-hover" />
-                <span
-                    aria-hidden="true"
-                    className="h-3.5 w-3.5 shrink-0 opacity-90"
-                    style={{
-                        backgroundColor: "#fff",
-                        WebkitMaskImage: 'url("box-2-svgrepo-com.svg")',
-                        maskImage: 'url("box-2-svgrepo-com.svg")',
-                        WebkitMaskRepeat: "no-repeat",
-                        maskRepeat: "no-repeat",
-                        WebkitMaskPosition: "center",
-                        maskPosition: "center",
-                        WebkitMaskSize: "contain",
-                        maskSize: "contain",
-                    }}
-                />
-                <span>New Tab</span>
-            </button>
         </div>
     );
 }

@@ -626,6 +626,7 @@ const TabBar = memo(({ workspace, noTabs, position = "top" }: TabBarProps) => {
                         })}
                 </div>
             </div>
+            <div className="flex-1" />
             <button
                 ref={addBtnRef}
                 title="Add Tab"
@@ -648,7 +649,6 @@ const TabBar = memo(({ workspace, noTabs, position = "top" }: TabBarProps) => {
                     }}
                 />
             </button>
-            <div className="flex-1" />
             <div ref={rightContainerRef} className="flex flex-row gap-1 items-end">
                 <UpdateStatusBanner />
                 <div

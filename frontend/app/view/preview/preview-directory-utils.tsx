@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { globalStore } from "@/app/store/jotaiStore";
-import { TabRpcClient } from "@/app/store/wshrpcutil";
-import { fireAndForget, isBlank } from "@/util/util";
+import { isBlank } from "@/util/util";
 import dayjs from "dayjs";
 import React from "react";
 import { type PreviewModel } from "./preview-model";
@@ -154,7 +153,7 @@ export function handleFileDelete(
 
 export function makeDirectoryDefaultMenuItems(model: PreviewModel): ContextMenuItem[] {
     const defaultSort = globalStore.get(model.env.getSettingsKeyAtom("preview:defaultsort")) ?? "name";
-    const showHiddenFiles = globalStore.get(model.showHiddenFiles) ?? true;
+    const showHiddenFiles = globalStore.get(model.showHiddenFiles) ?? false;
     return [
         {
             label: "Directory Sort Order",
@@ -188,9 +187,6 @@ export function makeDirectoryDefaultMenuItems(model: PreviewModel): ContextMenuI
                     checked: showHiddenFiles,
                     click: () => {
                         globalStore.set(model.showHiddenFiles, true);
-                        fireAndForget(() =>
-                            model.env.rpc.SetConfigCommand(TabRpcClient, { "preview:showhiddenfiles": true })
-                        );
                     },
                 },
                 {
@@ -199,9 +195,6 @@ export function makeDirectoryDefaultMenuItems(model: PreviewModel): ContextMenuI
                     checked: !showHiddenFiles,
                     click: () => {
                         globalStore.set(model.showHiddenFiles, false);
-                        fireAndForget(() =>
-                            model.env.rpc.SetConfigCommand(TabRpcClient, { "preview:showhiddenfiles": false })
-                        );
                     },
                 },
             ],

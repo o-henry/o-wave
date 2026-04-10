@@ -26,9 +26,11 @@ import { TermStickers } from "./termsticker";
 import { TermThemeUpdater } from "./termtheme";
 import { computeTheme, normalizeCursorStyle } from "./termutil";
 import { TermWrap } from "./termwrap";
+import type { ShellIntegrationStatus } from "./osc-handlers";
 import "./xterm.css";
 
 const dlog = debug("wave:term");
+const NullShellIntegrationStatusAtom = jotai.atom<ShellIntegrationStatus | null>(null);
 
 function escapeFontFamily(fontName: string): string {
     return `"${fontName.replace(/"/g, '\\"')}"`;
@@ -333,6 +335,7 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
             {
                 theme: termTheme,
                 fontSize: termFontSize,
+                lineHeight: 1.12,
                 fontFamily: termFontFamily,
                 drawBoldTextInBrightColors: false,
                 fontWeight: "normal",

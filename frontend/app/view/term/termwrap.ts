@@ -10,7 +10,6 @@ import {
     fetchWaveFile,
     getApi,
     getOverrideConfigAtom,
-    getSettingsKeyAtom,
     globalStore,
     isDev,
     openLink,
@@ -67,8 +66,6 @@ export const WebGLSupported = detectWebGLSupport();
 let loggedWebGL = false;
 
 const CodexCommandRegex = /^codex\b/;
-const IMEDedupWindowMs = 20;
-
 function stripItalicSgrSequences(data: string): string {
     if (!data.includes("\x1b[")) {
         return data;
@@ -189,6 +186,8 @@ export class TermWrap {
     promptMarkers: TermTypes.IMarker[] = [];
     currentPromptHighlightActive: boolean = false;
     currentPromptHighlightEl: HTMLDivElement | null = null;
+    currentPromptMaskActive: boolean = false;
+    currentPromptMaskEl: HTMLDivElement | null = null;
     shellIntegrationStatusAtom: jotai.PrimitiveAtom<ShellIntegrationStatus | null>;
     lastCommandAtom: jotai.PrimitiveAtom<string | null>;
     claudeCodeActiveAtom: jotai.PrimitiveAtom<boolean>;
@@ -200,13 +199,6 @@ export class TermWrap {
     // xterm.js paste() method triggers onData event, which can cause duplicate sends
     lastPasteData: string = "";
     lastPasteTime: number = 0;
-
-    // IME composition tracking
-    isComposing: boolean = false;
-    composingData: string = "";
-    lastCompositionEnd: number = 0;
-    lastComposedText: string = "";
-    firstDataAfterCompositionSent: boolean = false;
 
     // dev only (for debugging)
     recentWrites: { idx: number; data: string; ts: number }[] = [];
@@ -369,8 +361,11 @@ export class TermWrap {
             })
         );
         this.terminal.attachCustomKeyEventHandler((e: KeyboardEvent) => {
-            if (e.isComposing && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                return true;
+            const isImeComposeKey = e.isComposing || e.key === "Process" || e.keyCode === 229;
+            if (isImeComposeKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                // Let the browser/IME finish composition without also treating the
+                // intermediate Process/229 keydown as regular terminal input.
+                return false;
             }
             if (!waveOptions.keydownHandler) {
                 return true;
@@ -415,14 +410,6 @@ export class TermWrap {
             },
         });
         this.handleResize();
-        this.terminal.textarea.addEventListener("compositionstart", this.handleCompositionStart);
-        this.terminal.textarea.addEventListener("compositionupdate", this.handleCompositionUpdate);
-        this.terminal.textarea.addEventListener("compositionend", this.handleCompositionEnd);
-        this.terminal.textarea.addEventListener("blur", () => {
-            if (this.isComposing) {
-                this.resetCompositionState();
-            }
-        });
         this.toDispose.push(this.terminal.onRender(() => this.updateCurrentPromptHighlight()));
         this.toDispose.push(this.terminal.onScroll(() => this.updateCurrentPromptHighlight()));
         this.toDispose.push(this.terminal.onResize(() => this.updateCurrentPromptHighlight()));
@@ -435,17 +422,17 @@ export class TermWrap {
         });
     }
 
-    resetCompositionState = () => {
-        this.isComposing = false;
-        this.composingData = "";
-        this.lastComposedText = "";
-        this.firstDataAfterCompositionSent = false;
-    };
-
     clearCurrentPromptDecoration() {
         this.currentPromptHighlightActive = false;
         if (this.currentPromptHighlightEl) {
             this.currentPromptHighlightEl.style.display = "none";
+        }
+    }
+
+    clearCurrentPromptMask() {
+        this.currentPromptMaskActive = false;
+        if (this.currentPromptMaskEl) {
+            this.currentPromptMaskEl.style.display = "none";
         }
     }
 
@@ -465,29 +452,64 @@ export class TermWrap {
         return highlightEl;
     }
 
+    ensureCurrentPromptMaskEl(): HTMLDivElement | null {
+        if (this.currentPromptMaskEl) {
+            return this.currentPromptMaskEl;
+        }
+        const screenEl = this.connectElem.querySelector(".xterm-screen") as HTMLDivElement | null;
+        if (!screenEl) {
+            return null;
+        }
+        const maskEl = document.createElement("div");
+        maskEl.className = "xterm-current-prompt-mask";
+        maskEl.style.display = "none";
+        screenEl.insertBefore(maskEl, screenEl.firstChild);
+        this.currentPromptMaskEl = maskEl;
+        return maskEl;
+    }
+
     updateCurrentPromptHighlight() {
         const highlightEl = this.ensureCurrentPromptHighlightEl();
+        const maskEl = this.ensureCurrentPromptMaskEl();
         const shellState = globalStore.get(this.shellIntegrationStatusAtom);
         const lastCommand = globalStore.get(this.lastCommandAtom);
         const codexActive = shellState === "running-command" && isCodexCommand(lastCommand);
-        if (!highlightEl || !codexActive) {
+        const cursorEl = this.connectElem.querySelector(".xterm-cursor") as HTMLElement | null;
+        const rowEl = cursorEl?.parentElement as HTMLElement | null;
+        if (!rowEl) {
             if (highlightEl) {
                 highlightEl.style.display = "none";
             }
+            if (maskEl) {
+                maskEl.style.display = "none";
+            }
             return;
         }
-        const screenEl = this.connectElem.querySelector(".xterm-screen") as HTMLDivElement | null;
-        const cursorEl = this.connectElem.querySelector(".xterm-cursor") as HTMLElement | null;
-        const rowEl = cursorEl?.parentElement as HTMLElement | null;
-        if (!screenEl || !rowEl) {
+
+        if (!highlightEl || !maskEl) {
+            return;
+        }
+
+        if (!codexActive) {
             highlightEl.style.display = "none";
-            return;
+        } else {
+            highlightEl.style.display = "block";
+            highlightEl.style.left = "0";
+            highlightEl.style.right = "0";
+            highlightEl.style.top = `${rowEl.offsetTop}px`;
+            highlightEl.style.height = `${rowEl.offsetHeight}px`;
         }
-        highlightEl.style.display = "block";
-        highlightEl.style.left = "0";
-        highlightEl.style.right = "0";
-        highlightEl.style.top = `${rowEl.offsetTop}px`;
-        highlightEl.style.height = `${rowEl.offsetHeight}px`;
+
+        if (!this.currentPromptMaskActive) {
+            maskEl.style.display = "none";
+        } else {
+            const rowHeight = rowEl.offsetHeight;
+            maskEl.style.display = "block";
+            maskEl.style.left = "0";
+            maskEl.style.right = "0";
+            maskEl.style.top = `${rowEl.offsetTop}px`;
+            maskEl.style.height = `${rowHeight}px`;
+        }
     }
 
     setCurrentPromptDecoration(_inputStartX: number) {
@@ -495,24 +517,10 @@ export class TermWrap {
         this.updateCurrentPromptHighlight();
     }
 
-    handleCompositionStart = () => {
-        this.isComposing = true;
-        this.composingData = "";
-        this.lastComposedText = "";
-        this.firstDataAfterCompositionSent = false;
-    };
-
-    handleCompositionUpdate = (event: CompositionEvent) => {
-        this.composingData = event.data ?? "";
-    };
-
-    handleCompositionEnd = (event: CompositionEvent) => {
-        this.lastCompositionEnd = Date.now();
-        this.lastComposedText = event.data ?? this.composingData ?? "";
-        this.composingData = "";
-        this.isComposing = false;
-        this.firstDataAfterCompositionSent = false;
-    };
+    setCurrentPromptMask(enabled: boolean) {
+        this.currentPromptMaskActive = enabled;
+        this.updateCurrentPromptHighlight();
+    }
 
     getZoneId(): string {
         return this.blockId;
@@ -570,27 +578,7 @@ export class TermWrap {
     }
 
     async initTerminal() {
-        const copyOnSelectAtom = getSettingsKeyAtom("term:copyonselect");
         this.toDispose.push(this.terminal.onData(this.handleTermData.bind(this)));
-        this.toDispose.push(
-            this.terminal.onSelectionChange(
-                debounce(50, () => {
-                    const selectedText = this.terminal.getSelection();
-                    if (!globalStore.get(copyOnSelectAtom)) {
-                        return;
-                    }
-                    // Don't copy-on-select when the search bar has focus — navigating
-                    // search results changes the terminal selection programmatically.
-                    const active = document.activeElement;
-                    if (active != null && active.closest(".search-container") != null) {
-                        return;
-                    }
-                    if (selectedText.length > 0) {
-                        navigator.clipboard.writeText(selectedText);
-                    }
-                })
-            )
-        );
         if (this.onSearchResultsDidChange != null) {
             this.toDispose.push(this.searchAddon.onDidChangeResults(this.onSearchResultsDidChange.bind(this)));
         }
@@ -632,6 +620,10 @@ export class TermWrap {
         if (this.currentPromptHighlightEl) {
             this.currentPromptHighlightEl.remove();
             this.currentPromptHighlightEl = null;
+        }
+        if (this.currentPromptMaskEl) {
+            this.currentPromptMaskEl.remove();
+            this.currentPromptMaskEl = null;
         }
         this.promptMarkers.forEach((marker) => {
             try {

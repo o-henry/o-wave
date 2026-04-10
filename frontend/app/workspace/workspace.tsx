@@ -29,7 +29,6 @@ const MacOSTabBarSpacer = memo(() => {
             className="w-full shrink-0"
             style={
                 {
-                    height: "calc(8px * var(--zoomfactor-inv))",
                     WebkitAppRegion: "drag",
                     backdropFilter: "blur(20px)",
                     background: "var(--term-header-bg, rgba(0, 0, 0, 0.35))",
@@ -46,7 +45,7 @@ const WorkspaceElem = memo(() => {
     const tabId = useAtomValue(atoms.staticTabId);
     const ws = useAtomValue(atoms.workspace);
     const fullConfig = useAtomValue(atoms.fullConfigAtom);
-    const tabBarPosition = useAtomValue(getSettingsKeyAtom("app:tabbar")) ?? "top";
+    const tabBarPosition = "left";
     const bottomTabBarVisible = useAtomValue(getSettingsKeyAtom("app:bottombarvisible")) ?? true;
     const termThemeName = useAtomValue(getSettingsKeyAtom("term:theme")) ?? DefaultTermTheme;
     const showLeftTabBar = tabBarPosition === "left";

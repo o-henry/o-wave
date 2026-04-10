@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BlockNodeModel } from "@/app/block/blocktypes";
+import Git2Svg from "@/app/asset/git2.svg";
+import SidebarCircleSvg from "@/app/asset/sidebar-circle.svg";
 import { ContextMenuModel } from "@/app/store/contextmenu";
 import { globalStore } from "@/app/store/jotaiStore";
 import type { TabModel } from "@/app/store/tab-model";
 import { TabRpcClient } from "@/app/store/wshrpcutil";
-import { getOverrideConfigAtom, refocusNode } from "@/store/global";
+import { createBlockSplitVertically, getOverrideConfigAtom, refocusNode, replaceBlock } from "@/store/global";
 import * as WOS from "@/store/wos";
 import { goHistory, goHistoryBack, goHistoryForward } from "@/util/historyutil";
 import { checkKeyPressed } from "@/util/keyutil";
 import { addOpenMenuItems } from "@/util/previewutil";
-import { base64ToString, fireAndForget, isBlank, jotaiLoadableValue, stringToBase64 } from "@/util/util";
+import { base64ToString, fireAndForget, isBlank, isLocalConnName, jotaiLoadableValue, stringToBase64 } from "@/util/util";
 import { formatRemoteUri } from "@/util/waveutil";
 import clsx from "clsx";
 import { Atom, atom, Getter, PrimitiveAtom, WritableAtom } from "jotai";
@@ -33,6 +35,13 @@ const BOOKMARKS: { label: string; path: string }[] = [
 
 const MaxFileSize = 1024 * 1024 * 10; // 10MB
 const MaxCSVSize = 1024 * 1024 * 1; // 1MB
+const PreviewTaskBlockIdKey = "preview:taskblockid";
+const PreviewReviewBlockIdKey = "preview:reviewblockid";
+const DefaultUnityBuildCommand =
+    `SLN="$(find . -maxdepth 1 -name '*.sln' | head -n 1)"; if [ -n "$SLN" ]; then dotnet build "$SLN"; else dotnet build; fi`;
+const DefaultUnityRunCommand = "open -a Unity .";
+const DefaultDotnetBuildCommand = "dotnet build";
+const DefaultDotnetRunCommand = "dotnet run";
 
 const textApplicationMimetypes = [
     "application/sql",
@@ -116,6 +125,51 @@ function iconForFile(mimeType: string): string {
     }
 }
 
+function normalizePath(filePath: string): string {
+    return (filePath ?? "").replace(/\\/g, "/");
+}
+
+function getParentDir(filePath: string): string {
+    const normalized = normalizePath(filePath).replace(/\/+$/, "");
+    const idx = normalized.lastIndexOf("/");
+    if (idx <= 0) {
+        return idx === 0 ? "/" : normalized;
+    }
+    return normalized.slice(0, idx);
+}
+
+function getUnityProjectRoot(filePath: string): string | null {
+    const normalized = normalizePath(filePath);
+    for (const marker of ["/Assets/", "/Packages/", "/ProjectSettings/"]) {
+        const idx = normalized.indexOf(marker);
+        if (idx > 0) {
+            return normalized.slice(0, idx);
+        }
+    }
+    return null;
+}
+
+function isUnityProjectPath(filePath: string): boolean {
+    return getUnityProjectRoot(filePath) != null;
+}
+
+function isBuildableCodePath(filePath: string): boolean {
+    const normalized = normalizePath(filePath).toLowerCase();
+    return (
+        isUnityProjectPath(normalized) ||
+        normalized.endsWith(".cs") ||
+        normalized.endsWith(".csproj") ||
+        normalized.endsWith(".sln") ||
+        normalized.endsWith(".shader") ||
+        normalized.endsWith(".compute") ||
+        normalized.endsWith(".hlsl") ||
+        normalized.endsWith(".cginc") ||
+        normalized.endsWith(".asmdef") ||
+        normalized.endsWith(".uxml") ||
+        normalized.endsWith(".uss")
+    );
+}
+
 export class PreviewModel implements ViewModel {
     viewType: string;
     blockId: string;
@@ -176,8 +230,7 @@ export class PreviewModel implements ViewModel {
         this.nodeModel = nodeModel;
         this.tabModel = tabModel;
         this.env = waveEnv;
-        let showHiddenFiles = globalStore.get(this.env.getSettingsKeyAtom("preview:showhiddenfiles")) ?? true;
-        this.showHiddenFiles = atom<boolean>(showHiddenFiles);
+        this.showHiddenFiles = atom<boolean>(false);
         this.refreshVersion = atom(0);
         this.directorySearchActive = atom(false);
         this.previewTextRef = createRef();
@@ -247,10 +300,6 @@ export class PreviewModel implements ViewModel {
                     onClick: () => this.toggleOpenFileModal(),
                 },
             ];
-            let saveClassName = "grey";
-            if (get(this.newFileContent) !== null) {
-                saveClassName = "green";
-            }
             if (isCeView) {
                 const fileInfo = globalStore.get(this.loadableFileInfo);
                 if (fileInfo.state != "hasData") {
@@ -267,29 +316,7 @@ export class PreviewModel implements ViewModel {
                         className: clsx(`yellow rounded-[4px] !py-[2px] !px-[10px] text-[11px] font-[500]`),
                         onClick: () => {},
                     });
-                } else {
-                    viewTextChildren.push({
-                        elemtype: "textbutton",
-                        text: "Save",
-                        className: clsx(`${saveClassName} rounded-[4px] !py-[2px] !px-[10px] text-[11px] font-[500]`),
-                        onClick: () => fireAndForget(this.handleFileSave.bind(this)),
-                    });
                 }
-                if (get(this.canPreview)) {
-                    viewTextChildren.push({
-                        elemtype: "textbutton",
-                        text: "Preview",
-                        className: "grey rounded-[4px] !py-[2px] !px-[10px] text-[11px] font-[500]",
-                        onClick: () => fireAndForget(() => this.setEditMode(false)),
-                    });
-                }
-            } else if (get(this.canPreview)) {
-                viewTextChildren.push({
-                    elemtype: "textbutton",
-                    text: "Edit",
-                    className: "grey rounded-[4px] !py-[2px] !px-[10px] text-[11px] font-[500]",
-                    onClick: () => fireAndForget(() => this.setEditMode(true)),
-                });
             }
             return [
                 {
@@ -320,22 +347,19 @@ export class PreviewModel implements ViewModel {
                 return null;
             }
             const mimeType = jotaiLoadableValue(get(this.fileMimeTypeLoadable), "");
+            const fileInfo = jotaiLoadableValue(get(this.loadableFileInfo), null);
             const loadableSV = get(this.loadableSpecializedView);
             const isCeView = loadableSV.state == "hasData" && loadableSV.data.specializedView == "codeedit";
+            const hasUnsavedChanges = isCeView && get(this.newFileContent) !== null;
+            const canRunTasks = isCeView && fileInfo?.path != null && isBuildableCodePath(fileInfo.path);
+            const connection = get(this.connectionImmediate);
+            const canOpenReview = isCeView && fileInfo?.path != null && isLocalConnName(connection);
             if (mimeType == "directory") {
-                const showHiddenFiles = get(this.showHiddenFiles);
                 return [
                     {
                         elemtype: "iconbutton",
-                        icon: showHiddenFiles ? "eye" : "eye-slash",
-                        title: showHiddenFiles ? "Hide Hidden Files" : "Show Hidden Files",
-                        click: () => {
-                            globalStore.set(this.showHiddenFiles, (prev) => !prev);
-                        },
-                    },
-                    {
-                        elemtype: "iconbutton",
                         icon: "arrows-rotate",
+                        className: "preview-directory-toolbar-button preview-refresh-button",
                         click: () => this.refreshCallback?.(),
                     },
                 ] as IconButtonDecl[];
@@ -343,13 +367,8 @@ export class PreviewModel implements ViewModel {
                 return [
                     {
                         elemtype: "iconbutton",
-                        icon: "book",
-                        title: "Table of Contents",
-                        click: () => this.markdownShowTocToggle(),
-                    },
-                    {
-                        elemtype: "iconbutton",
                         icon: "arrows-rotate",
+                        className: "preview-refresh-button",
                         title: "Refresh",
                         click: () => this.refreshCallback?.(),
                     },
@@ -360,10 +379,57 @@ export class PreviewModel implements ViewModel {
                     {
                         elemtype: "iconbutton",
                         icon: "arrows-rotate",
+                        className: "preview-refresh-button",
                         title: "Refresh",
                         click: () => this.refreshCallback?.(),
                     },
                 ] as IconButtonDecl[];
+            } else if (isCeView) {
+                const buttons: IconButtonDecl[] = [];
+                if (hasUnsavedChanges) {
+                    buttons.push({
+                        elemtype: "iconbutton",
+                        icon: (
+                            <span className="flex h-4 w-4 items-center justify-center">
+                                <SidebarCircleSvg />
+                            </span>
+                        ),
+                        title: "Unsaved Changes",
+                        iconColor: "#22c55e",
+                        className: "preview-unsaved-indicator",
+                        noAction: true,
+                    });
+                }
+                if (canRunTasks) {
+                    buttons.push(
+                        {
+                            elemtype: "iconbutton",
+                            icon: "hammer",
+                            title: "Build Project",
+                            click: () => fireAndForget(() => this.runProjectTask("build")),
+                        },
+                        {
+                            elemtype: "iconbutton",
+                            icon: "play",
+                            title: "Run Project",
+                            click: () => fireAndForget(() => this.runProjectTask("run")),
+                        }
+                    );
+                }
+                if (canOpenReview) {
+                    buttons.push({
+                        elemtype: "iconbutton",
+                        icon: (
+                            <span className="flex h-4 w-4 items-center justify-center [&_svg]:h-[14px] [&_svg]:w-[14px]">
+                                <Git2Svg />
+                            </span>
+                        ),
+                        title: "Open Code Review",
+                        iconColor: "#ffffff",
+                        click: () => fireAndForget(() => this.openCodeReviewPanel()),
+                    });
+                }
+                return buttons.length > 0 ? buttons : null;
             }
             return null;
         });
@@ -635,8 +701,8 @@ export class PreviewModel implements ViewModel {
         await this.env.services.object.UpdateObjectMeta(blockOref, { ...blockMeta, edit });
     }
 
-    async handleFileSave() {
-        const filePath = await globalStore.get(this.statFilePath);
+    async handleFileSave({ skipAutoBuild = false }: { skipAutoBuild?: boolean } = {}) {
+        const filePath = globalStore.get(this.metaFilePath) ?? (await globalStore.get(this.statFilePath));
         if (filePath == null) {
             return;
         }
@@ -655,6 +721,10 @@ export class PreviewModel implements ViewModel {
             globalStore.set(this.fileContent, newFileContent);
             globalStore.set(this.newFileContent, null);
             console.log("saved file", filePath);
+            const autoBuildOnSave = globalStore.get(this.env.getSettingsKeyAtom("preview:autobuildonsave")) ?? false;
+            if (!skipAutoBuild && autoBuildOnSave && isBuildableCodePath(filePath)) {
+                await this.runProjectTask("build", { triggeredByAutoSave: true });
+            }
         } catch (e) {
             const errorStatus: ErrorMsg = {
                 status: "Save Failed",
@@ -683,6 +753,113 @@ export class PreviewModel implements ViewModel {
             globalStore.set(this.openFileError, e.message);
             console.error("Error opening file", filePath, e);
         }
+    }
+
+    private getTaskExecutionContext(filePath: string): { cwd: string } {
+        const unityRoot = getUnityProjectRoot(filePath);
+        if (unityRoot != null) {
+            return { cwd: unityRoot };
+        }
+        return { cwd: getParentDir(filePath) };
+    }
+
+    private getTaskCommand(taskType: "build" | "run", filePath: string): string {
+        const settingsKey = taskType === "build" ? "preview:buildcommand" : "preview:runcommand";
+        const configured = (globalStore.get(this.env.getSettingsKeyAtom(settingsKey)) ?? "").trim();
+        if (configured !== "") {
+            return configured;
+        }
+        const unityProject = isUnityProjectPath(filePath);
+        if (taskType === "build") {
+            return unityProject ? DefaultUnityBuildCommand : DefaultDotnetBuildCommand;
+        }
+        return unityProject ? DefaultUnityRunCommand : DefaultDotnetRunCommand;
+    }
+
+    private makeTaskBlockDef(taskType: "build" | "run", command: string, cwd: string): BlockDef {
+        const connection = globalStore.get(this.connectionImmediate);
+        const meta: MetaType = {
+            view: "term",
+            controller: "cmd",
+            cmd: command,
+            "cmd:cwd": cwd,
+            "cmd:shell": true,
+            "cmd:runonce": true,
+            "cmd:clearonstart": true,
+            "cmd:closeonexit": false,
+            "frame:title": taskType === "build" ? "Build Output" : "Run Output",
+            icon: taskType === "build" ? "hammer" : "play",
+        };
+        if (connection) {
+            meta.connection = connection;
+        }
+        return { meta };
+    }
+
+    async runProjectTask(taskType: "build" | "run", options: { triggeredByAutoSave?: boolean } = {}) {
+        const filePath = await globalStore.get(this.statFilePath);
+        if (filePath == null) {
+            return;
+        }
+        if (!options.triggeredByAutoSave && globalStore.get(this.newFileContent) != null) {
+            await this.handleFileSave({ skipAutoBuild: true });
+        }
+        const { cwd } = this.getTaskExecutionContext(filePath);
+        const command = this.getTaskCommand(taskType, filePath);
+        const blockDef = this.makeTaskBlockDef(taskType, command, cwd);
+        const blockMeta = globalStore.get(this.blockAtom)?.meta ?? {};
+        const existingTaskBlockId = (blockMeta as Record<string, any>)[PreviewTaskBlockIdKey] as string | undefined;
+        try {
+            if (existingTaskBlockId) {
+                const nextBlockId = await replaceBlock(existingTaskBlockId, blockDef, false);
+                await this.env.services.object.UpdateObjectMeta(WOS.makeORef("block", this.blockId), {
+                    [PreviewTaskBlockIdKey]: nextBlockId,
+                } as MetaType);
+                return;
+            }
+        } catch (e) {
+            console.warn("unable to reuse preview task block", e);
+        }
+        const newBlockId = await createBlockSplitVertically(blockDef, this.blockId, "after");
+        await this.env.services.object.UpdateObjectMeta(WOS.makeORef("block", this.blockId), {
+            [PreviewTaskBlockIdKey]: newBlockId,
+        } as MetaType);
+        refocusNode(this.blockId);
+    }
+
+    async openCodeReviewPanel() {
+        const filePath = globalStore.get(this.metaFilePath) ?? (await globalStore.get(this.statFilePath));
+        if (filePath == null) {
+            return;
+        }
+        const connection = globalStore.get(this.connectionImmediate);
+        if (!isLocalConnName(connection)) {
+            return;
+        }
+        const blockDef: BlockDef = {
+            meta: {
+                view: "codereview",
+                file: filePath,
+            },
+        };
+        const blockMeta = globalStore.get(this.blockAtom)?.meta ?? {};
+        const existingReviewBlockId = (blockMeta as Record<string, any>)[PreviewReviewBlockIdKey] as string | undefined;
+        try {
+            if (existingReviewBlockId) {
+                const nextBlockId = await replaceBlock(existingReviewBlockId, blockDef, false);
+                await this.env.services.object.UpdateObjectMeta(WOS.makeORef("block", this.blockId), {
+                    [PreviewReviewBlockIdKey]: nextBlockId,
+                } as MetaType);
+                return;
+            }
+        } catch (e) {
+            console.warn("unable to reuse preview review block", e);
+        }
+        const newBlockId = await createBlockSplitVertically(blockDef, this.blockId, "after");
+        await this.env.services.object.UpdateObjectMeta(WOS.makeORef("block", this.blockId), {
+            [PreviewReviewBlockIdKey]: newBlockId,
+        } as MetaType);
+        refocusNode(this.blockId);
     }
 
     isSpecializedView(sv: string): boolean {
@@ -771,6 +948,24 @@ export class PreviewModel implements ViewModel {
                 menuItems.push({
                     label: "Revert File",
                     click: () => fireAndForget(this.handleFileRevert.bind(this)),
+                });
+            }
+            const fileInfo = jotaiLoadableValue(globalStore.get(this.loadableFileInfo), null);
+            if (fileInfo?.path && isBuildableCodePath(fileInfo.path)) {
+                menuItems.push({ type: "separator" });
+                menuItems.push({
+                    label: "Build Project",
+                    click: () => fireAndForget(() => this.runProjectTask("build")),
+                });
+                menuItems.push({
+                    label: "Run Project",
+                    click: () => fireAndForget(() => this.runProjectTask("run")),
+                });
+            }
+            if (fileInfo?.path && isLocalConnName(globalStore.get(this.connectionImmediate))) {
+                menuItems.push({
+                    label: "Open Code Review",
+                    click: () => fireAndForget(() => this.openCodeReviewPanel()),
                 });
             }
             menuItems.push({ type: "separator" });

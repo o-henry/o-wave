@@ -731,6 +731,12 @@ export class TermViewModel implements ViewModel {
                 event.stopPropagation();
                 return false;
             }
+            if (keyutil.checkKeyPressed(waveEvent, "Cmd:Backspace")) {
+                this.sendDataToController("\x01\x0b"); // Ctrl-A + Ctrl-K (clear current input line)
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
+            }
         }
         if (keyutil.checkKeyPressed(waveEvent, "Shift:Enter")) {
             const shiftEnterNewlineAtom = getOverrideConfigAtom(this.blockId, "term:shiftenternewline");

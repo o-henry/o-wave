@@ -359,13 +359,16 @@ const BlockFrame_Header = ({
                     divClassName="iconbutton disabled text-[13px] ml-[-4px]"
                 />
             )}
-            {useTermHeader && badge && (
-                <div className="pointer-events-none flex items-center px-1" style={{ color: badge.color || "#fbbf24" }}>
+            {useTermHeader && (badge || isTerminalBlock) && (
+                <div
+                    className="pointer-events-none flex items-center px-1"
+                    style={{ color: badge?.color || "#fbbf24" }}
+                >
                     <span
                         aria-hidden="true"
                         className="h-3 w-3 shrink-0"
                         style={{
-                            backgroundColor: badge.color || "#fbbf24",
+                            backgroundColor: badge?.color || "#fbbf24",
                             WebkitMaskImage: 'url("yellow-circle.svg")',
                             maskImage: 'url("yellow-circle.svg")',
                             WebkitMaskRepeat: "no-repeat",
