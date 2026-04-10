@@ -149,7 +149,12 @@ export const AIPanelInput = memo(({ onSubmit, status, model }: AIPanelInputProps
     };
 
     return (
-        <div className={cn("shrink-0 border-t bg-zinc-900/95", isFocused ? "border-accent/50" : "border-gray-600")}>
+        <div
+            className={cn(
+                "shrink-0 border-t bg-zinc-900/95 px-2 pt-2 pb-3",
+                isFocused ? "border-accent/50" : "border-gray-600"
+            )}
+        >
             <input
                 ref={fileInputRef}
                 type="file"
@@ -169,7 +174,7 @@ export const AIPanelInput = memo(({ onSubmit, status, model }: AIPanelInputProps
                         onBlur={handleBlur}
                         placeholder={placeholder}
                         className={cn(
-                            "scrollbar-hide w-full min-h-12 text-white px-2 py-2 pr-5 focus:outline-none resize-none overflow-auto bg-zinc-800/80 leading-6"
+                            "scrollbar-hide w-full min-h-12 rounded-md text-white px-2 py-2 pr-5 focus:outline-none resize-none overflow-auto bg-zinc-800/80 leading-6"
                         )}
                         style={{ fontSize: "13px" }}
                         rows={2}
