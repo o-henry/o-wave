@@ -131,6 +131,42 @@ tasks:
             - build:backend
             - build:tsunamiscaffold
 
+    package:local:x64:
+        desc: Build a fast local macOS x64 update package for the installed app to consume from a local feed.
+        platforms: [darwin]
+        cmds:
+            - cmd: rm -rf .local-autoupdate
+              ignore_error: true
+            - mkdir -p .local-autoupdate
+            - npm run build:prod
+            - npm exec electron-builder -- -c electron-builder.config.cjs -p never --mac zip dmg --x64 -c.directories.output=.local-autoupdate -c.publish.provider=generic -c.publish.url=http://127.0.0.1:14555
+        deps:
+            - npm:install
+            - build:backend:local:x64
+            - build:tsunamiscaffold
+
+    install:local:x64:
+        desc: Build and replace the installed SHIB app on macOS x64 in one command.
+        platforms: [darwin]
+        cmds:
+            - cmd: rm -rf .local-install
+              ignore_error: true
+            - mkdir -p .local-install
+            - npm run build:prod
+            - npm exec electron-builder -- -c electron-builder.config.cjs -p never --mac dir --x64 -c.directories.output=.local-install
+            - |
+              APP_PATH="$(find .local-install -maxdepth 2 -name 'SHIB.app' | head -n 1)"
+              if [ -z "$APP_PATH" ]; then
+                echo "Built SHIB.app bundle not found"
+                exit 1
+              fi
+              rm -rf "/Applications/SHIB.app"
+              cp -R "$APP_PATH" "/Applications/SHIB.app"
+        deps:
+            - npm:install
+            - build:backend:local:x64
+            - build:tsunamiscaffold
+
     build:frontend:dev:
         desc: Build the frontend in development mode.
         cmd: npm run build:dev
@@ -156,6 +192,16 @@ tasks:
             - tsunami/go.mod
             - tsunami/go.sum
             - tsunami/**/*.go
+
+    build:backend:local:x64:
+        desc: Build the backend artifacts needed for a local macOS x64 auto-update package.
+        platforms: [darwin]
+        cmds:
+            - task: build:server:macos:x64
+            - task: build:wsh
+        deps:
+            - go:mod:tidy
+            - generate
 
     build:schema:
         desc: Build the schema for configuration.
@@ -197,6 +243,16 @@ tasks:
             - task: build:server:internal
               vars:
                   ARCHS: arm64,amd64
+
+    build:server:macos:x64:
+        desc: Build the wavesrv component for macOS x64 only.
+        platforms: [darwin]
+        cmds:
+            - cmd: rm -f dist/bin/wavesrv.x64
+              ignore_error: true
+            - task: build:server:internal
+              vars:
+                  ARCHS: amd64
 
     build:server:quickdev:
         desc: Build the wavesrv component for quickdev (arm64 macOS only, no generate).
@@ -444,6 +500,32 @@ tasks:
                   GOOS: darwin
                   GOARCH: arm64
             - cp dist/bin/wsh-{{.VERSION}}-darwin.arm64 ~/Library/Application\ Support/waveterm-dev/bin/wsh
+
+    dev:autoupdate:enable-local:
+        desc: Point the installed app at a local update feed with startup-only checks.
+        platforms: [darwin]
+        cmds:
+            - mkdir -p ~/.config/waveterm
+            - |
+              cat > ~/.config/waveterm/app-update.override.yml <<'EOF'
+              provider: generic
+              url: http://127.0.0.1:14555
+              channel: latest
+              enabled: false
+              startupcheck: true
+              installonquit: true
+              EOF
+
+    dev:autoupdate:disable-local:
+        desc: Remove the local update feed override for the installed app.
+        platforms: [darwin]
+        cmds:
+            - rm -f ~/.config/waveterm/app-update.override.yml
+
+    dev:autoupdate:serve-local:
+        desc: Serve the local auto-update feed on localhost.
+        platforms: [darwin]
+        cmd: python3 -m http.server 14555 --directory .local-autoupdate
 
     dev:clearconfig:
         desc: Clear the config directory for waveterm-dev

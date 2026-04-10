@@ -90,6 +90,14 @@ body {
     }
 }
 
+.scrollbar-hide {
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
 a {
     color: var(--accent-color);
 }

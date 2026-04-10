@@ -3,20 +3,57 @@
 
 import { dialog, ipcMain, Notification } from "electron";
 import { autoUpdater } from "electron-updater";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import path from "path";
 import YAML from "yaml";
 import { RpcApi } from "../frontend/app/store/wshclientapi";
 import { isDev } from "../frontend/util/isdev";
 import { fireAndForget } from "../frontend/util/util";
 import { setUserConfirmedQuit } from "./emain-activity";
+import { getWaveConfigDir } from "./emain-platform";
 import { delay } from "./emain-util";
 import { focusedWaveWindow, getAllWaveWindows } from "./emain-window";
 import { ElectronWshClient } from "./emain-wsh";
 
 export let updater: Updater;
 
-function getUpdateChannel(settings: SettingsType): string {
+type UpdateOverrideConfig = {
+    provider?: string;
+    url?: string;
+    channel?: string;
+    enabled?: boolean;
+    intervalms?: number;
+    installonquit?: boolean;
+    startupcheck?: boolean;
+};
+
+function getUpdateOverrideConfig(): UpdateOverrideConfig | null {
+    const overridePath = path.join(getWaveConfigDir(), "app-update.override.yml");
+    if (!existsSync(overridePath)) {
+        return null;
+    }
+
+    try {
+        const rawOverride = YAML.parse(readFileSync(overridePath, { encoding: "utf8" }).toString()) as
+            | UpdateOverrideConfig
+            | null;
+        if (!rawOverride || typeof rawOverride !== "object") {
+            return null;
+        }
+        console.log("Using update override config:", rawOverride);
+        return rawOverride;
+    } catch (error) {
+        console.warn("failed to read app-update override config", error);
+        return null;
+    }
+}
+
+function getUpdateChannel(settings: SettingsType, updateOverride: UpdateOverrideConfig | null): string {
+    if (updateOverride?.channel) {
+        console.log("Update channel from override:", updateOverride.channel);
+        return updateOverride.channel;
+    }
+
     const updaterConfigPath = path.join(process.resourcesPath!, "app-update.yml");
     const updaterConfig = YAML.parse(readFileSync(updaterConfigPath, { encoding: "utf8" }).toString());
     console.log("Updater config from binary:", updaterConfig);
@@ -39,27 +76,42 @@ export class Updater {
     autoCheckInterval: NodeJS.Timeout | null;
     intervalms: number;
     autoCheckEnabled: boolean;
+    startupCheckEnabled: boolean;
     availableUpdateReleaseName: string | null;
     availableUpdateReleaseNotes: string | null;
     private _status: UpdaterStatus;
     lastUpdateCheck: Date;
 
     constructor(settings: SettingsType) {
-        this.intervalms = settings["autoupdate:intervalms"];
+        const updateOverride = getUpdateOverrideConfig();
+
+        this.intervalms = updateOverride?.intervalms ?? settings["autoupdate:intervalms"];
         console.log("Update check interval in milliseconds:", this.intervalms);
-        this.autoCheckEnabled = settings["autoupdate:enabled"];
+        this.autoCheckEnabled = updateOverride?.enabled ?? settings["autoupdate:enabled"];
         console.log("Update check enabled:", this.autoCheckEnabled);
+        this.startupCheckEnabled = updateOverride?.startupcheck ?? this.autoCheckEnabled;
+        console.log("Update startup check enabled:", this.startupCheckEnabled);
 
         this._status = "up-to-date";
         this.lastUpdateCheck = new Date(0);
         this.autoCheckInterval = null;
         this.availableUpdateReleaseName = null;
 
-        autoUpdater.autoInstallOnAppQuit = settings["autoupdate:installonquit"];
-        console.log("Install update on quit:", settings["autoupdate:installonquit"]);
+        autoUpdater.autoInstallOnAppQuit = updateOverride?.installonquit ?? settings["autoupdate:installonquit"];
+        console.log("Install update on quit:", autoUpdater.autoInstallOnAppQuit);
+
+        if (updateOverride?.url) {
+            const feedConfig = {
+                provider: updateOverride.provider ?? "generic",
+                url: updateOverride.url,
+                channel: updateOverride.channel,
+            };
+            autoUpdater.setFeedURL(feedConfig as any);
+            console.log("Using overridden update feed URL:", feedConfig);
+        }
 
         // Only update the release channel if it's specified, otherwise use the one configured in the updater.
-        autoUpdater.channel = getUpdateChannel(settings);
+        autoUpdater.channel = getUpdateChannel(settings, updateOverride);
         autoUpdater.allowDowngrade = false;
 
         autoUpdater.removeAllListeners();
@@ -124,12 +176,16 @@ export class Updater {
      * Check for updates and start the background update check, if configured.
      */
     async start() {
-        if (this.autoCheckEnabled) {
+        if (this.autoCheckEnabled || this.startupCheckEnabled) {
             console.log("starting updater");
-            this.autoCheckInterval = setInterval(() => {
-                fireAndForget(() => this.checkForUpdates(false));
-            }, 600000); // intervals are unreliable when an app is suspended so we will check every 10 mins if the interval has passed.
-            await this.checkForUpdates(false);
+            const pollIntervalMs = Math.max(5000, Math.min(this.intervalms, 600000));
+            if (this.autoCheckEnabled) {
+                console.log("Updater poll interval in milliseconds:", pollIntervalMs);
+                this.autoCheckInterval = setInterval(() => {
+                    fireAndForget(() => this.checkForUpdates(false));
+                }, pollIntervalMs);
+            }
+            await this.checkForUpdates(false, true);
         }
     }
 
@@ -148,11 +204,12 @@ export class Updater {
      * Checks if the configured interval time has passed since the last update check, and if so, checks for updates using the `autoUpdater` object
      * @param userInput Whether the user is requesting this. If so, an alert will report the result of the check.
      */
-    async checkForUpdates(userInput: boolean) {
+    async checkForUpdates(userInput: boolean, force = false) {
         const now = new Date();
 
         // Run an update check always if the user requests it, otherwise only if there's an active update check interval and enough time has elapsed.
         if (
+            force ||
             userInput ||
             (this.autoCheckInterval &&
                 (!this.lastUpdateCheck || Math.abs(now.getTime() - this.lastUpdateCheck.getTime()) > this.intervalms))

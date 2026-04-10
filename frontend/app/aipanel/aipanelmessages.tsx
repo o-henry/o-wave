@@ -83,7 +83,11 @@ export const AIPanelMessages = memo(({ messages, status, onContextMenu }: AIPane
     }, [status]);
 
     return (
-        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-2 space-y-4" onContextMenu={onContextMenu}>
+        <div
+            ref={messagesContainerRef}
+            className="scrollbar-hide flex-1 min-h-0 overflow-y-auto p-2 space-y-4"
+            onContextMenu={onContextMenu}
+        >
             <div className="mb-2">
                 <AIModeDropdown compatibilityMode={true} />
             </div>

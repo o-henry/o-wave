@@ -557,8 +557,8 @@ const AIPanelComponentInner = memo(({ roundTopLeft }: AIPanelComponentInnerProps
             ref={containerRef}
             data-waveai-panel="true"
             className={cn(
-                "@container bg-zinc-900/70 flex flex-col relative",
-                model.inBuilder ? "mt-0 h-full" : "mt-1 h-[calc(100%-4px)]",
+                "@container bg-zinc-900/70 flex h-full min-h-0 flex-col relative box-border",
+                model.inBuilder ? "mt-0" : "pt-1",
                 (isDragOver || isReactDndDragOver) && "bg-zinc-800 border-accent",
                 isFocused && !borderColor ? "border-2 border-accent" : "border-2 border-transparent"
             )}
@@ -585,14 +585,14 @@ const AIPanelComponentInner = memo(({ roundTopLeft }: AIPanelComponentInnerProps
             <AIPanelHeader />
             <AIRateLimitStrip />
 
-            <div key="main-content" className="flex-1 flex flex-col min-h-0">
+            <div key="main-content" className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 {!allowAccess ? (
                     <TelemetryRequiredMessage />
                 ) : (
                     <>
                         {messages.length === 0 && initialLoadDone ? (
                             <div
-                                className="flex-1 overflow-y-auto p-2 relative"
+                                className="scrollbar-hide flex-1 min-h-0 overflow-y-auto p-2 relative"
                                 onContextMenu={(e) => handleWaveAIContextMenu(e, true)}
                             >
                                 <div className="absolute top-2 left-2 z-10">

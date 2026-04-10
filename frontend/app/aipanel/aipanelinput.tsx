@@ -42,10 +42,26 @@ export const AIPanelInput = memo(({ onSubmit, status, model }: AIPanelInputProps
         const textarea = textareaRef.current;
         if (!textarea) return;
 
+        const computedStyle = window.getComputedStyle(textarea);
+        const lineHeight = Number.parseFloat(computedStyle.lineHeight) || 24;
+        const paddingTop = Number.parseFloat(computedStyle.paddingTop) || 0;
+        const paddingBottom = Number.parseFloat(computedStyle.paddingBottom) || 0;
+        const borderTop = Number.parseFloat(computedStyle.borderTopWidth) || 0;
+        const borderBottom = Number.parseFloat(computedStyle.borderBottomWidth) || 0;
+        const verticalChrome = paddingTop + paddingBottom + borderTop + borderBottom;
+        const minHeight = 2 * lineHeight + verticalChrome;
+        const maxHeight = 7 * lineHeight + verticalChrome;
+
         textarea.style.height = "auto";
         const scrollHeight = textarea.scrollHeight;
-        const maxHeight = 7 * 24;
-        textarea.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+        const nextHeight = Math.max(minHeight, Math.min(scrollHeight, maxHeight));
+        const exceedsMaxHeight = scrollHeight > maxHeight;
+
+        textarea.style.height = `${nextHeight}px`;
+        textarea.style.overflowY = exceedsMaxHeight ? "auto" : "hidden";
+        if (!exceedsMaxHeight) {
+            textarea.scrollTop = 0;
+        }
     }, []);
 
     useEffect(() => {
@@ -133,7 +149,7 @@ export const AIPanelInput = memo(({ onSubmit, status, model }: AIPanelInputProps
     };
 
     return (
-        <div className={cn("border-t", isFocused ? "border-accent/50" : "border-gray-600")}>
+        <div className={cn("shrink-0 border-t bg-zinc-900/95", isFocused ? "border-accent/50" : "border-gray-600")}>
             <input
                 ref={fileInputRef}
                 type="file"
@@ -153,7 +169,7 @@ export const AIPanelInput = memo(({ onSubmit, status, model }: AIPanelInputProps
                         onBlur={handleBlur}
                         placeholder={placeholder}
                         className={cn(
-                            "w-full  text-white px-2 py-2 pr-5 focus:outline-none resize-none overflow-auto bg-zinc-800/50"
+                            "scrollbar-hide w-full min-h-12 text-white px-2 py-2 pr-5 focus:outline-none resize-none overflow-auto bg-zinc-800/80 leading-6"
                         )}
                         style={{ fontSize: "13px" }}
                         rows={2}
