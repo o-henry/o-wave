@@ -210,6 +210,8 @@ export class TermWrap {
     lastMode2026ResetTs: number = 0;
     inSyncTransaction: boolean = false;
     inRepaintTransaction: boolean = false;
+    utf8Decoder: TextDecoder = new TextDecoder();
+    isDisposed: boolean = false;
 
     constructor(
         tabId: string,
@@ -429,6 +431,10 @@ export class TermWrap {
         }
     }
 
+    resetUtf8Decoder() {
+        this.utf8Decoder = new TextDecoder();
+    }
+
     clearCurrentPromptMask() {
         this.currentPromptMaskActive = false;
         if (this.currentPromptMaskEl) {
@@ -583,6 +589,15 @@ export class TermWrap {
             this.toDispose.push(this.searchAddon.onDidChangeResults(this.onSearchResultsDidChange.bind(this)));
         }
 
+        void document.fonts.ready.then(() => {
+            if (this.isDisposed || !this.connectElem.isConnected) {
+                return;
+            }
+            this.handleResize();
+            this.terminal.refresh(0, Math.max(this.terminal.rows - 1, 0));
+            this.updateCurrentPromptHighlight();
+        });
+
         this.mainFileSubject = getFileSubject(this.getZoneId(), TermFileName);
         this.mainFileSubject.subscribe(this.handleNewFileSubjectData.bind(this));
 
@@ -616,6 +631,8 @@ export class TermWrap {
     }
 
     dispose() {
+        this.isDisposed = true;
+        this.resetUtf8Decoder();
         this.clearCurrentPromptDecoration();
         if (this.currentPromptHighlightEl) {
             this.currentPromptHighlightEl.remove();
@@ -663,6 +680,7 @@ export class TermWrap {
         if (msg.fileop == "truncate") {
             this.terminal.clear();
             this.heldData = [];
+            this.resetUtf8Decoder();
         } else if (msg.fileop == "append") {
             const decodedData = base64ToArray(msg.data64);
             if (this.loaded) {
@@ -677,16 +695,12 @@ export class TermWrap {
     }
 
     doTerminalWrite(data: string | Uint8Array, setPtyOffset?: number): Promise<void> {
-        let sanitizedData: string | Uint8Array = data;
-        if (typeof data === "string") {
-            sanitizedData = stripItalicSgrSequences(data);
-        } else {
-            const decodedData = new TextDecoder().decode(data);
-            sanitizedData = stripItalicSgrSequences(decodedData);
-        }
+        const sanitizedData =
+            typeof data === "string"
+                ? stripItalicSgrSequences(data)
+                : stripItalicSgrSequences(this.utf8Decoder.decode(data, { stream: true }));
         if (isDev() && this.loaded) {
-            const dataStr = typeof sanitizedData === "string" ? sanitizedData : new TextDecoder().decode(sanitizedData);
-            this.recentWrites.push({ idx: this.recentWritesCounter++, ts: Date.now(), data: dataStr });
+            this.recentWrites.push({ idx: this.recentWritesCounter++, ts: Date.now(), data: sanitizedData });
             if (this.recentWrites.length > 50) {
                 this.recentWrites.shift();
             }
