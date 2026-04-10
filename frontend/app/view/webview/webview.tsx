@@ -95,7 +95,7 @@ export class WebViewModel implements ViewModel {
         this.urlInputFocused = atom(false);
         this.isLoading = atom(false);
         this.refreshIcon = atom("rotate-right");
-        this.viewIcon = atom("globe");
+        this.viewIcon = atom("");
         this.viewName = atom("Web");
         this.hideViewName = atom(true);
         this.urlInputRef = createRef<HTMLInputElement>();
@@ -135,12 +135,6 @@ export class WebViewModel implements ViewModel {
                 click: this.handleForward.bind(this),
                 disabled: this.shouldDisableForwardButton(),
             });
-            rtn.push({
-                elemtype: "iconbutton",
-                icon: "house",
-                click: this.handleHome.bind(this),
-                disabled: this.shouldDisableHomeButton(),
-            });
             const divChildren: HeaderElem[] = [];
             divChildren.push({
                 elemtype: "input",
@@ -162,6 +156,7 @@ export class WebViewModel implements ViewModel {
             divChildren.push({
                 elemtype: "iconbutton",
                 icon: refreshIcon,
+                className: "web-refresh-button",
                 click: this.handleRefresh.bind(this),
             });
             rtn.push({

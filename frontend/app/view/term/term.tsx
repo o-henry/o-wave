@@ -31,6 +31,7 @@ import "./xterm.css";
 
 const dlog = debug("wave:term");
 const NullShellIntegrationStatusAtom = jotai.atom<ShellIntegrationStatus | null>(null);
+const NullLastCommandAtom = jotai.atom<string | null>(null);
 
 function escapeFontFamily(fontName: string): string {
     return `"${fontName.replace(/"/g, '\\"')}"`;
@@ -58,6 +59,21 @@ function buildTerminalFontFamilyStack(primaryFontFamily?: string | null, fallbac
     }
 
     return dedupedFontFamilies.join(", ");
+}
+
+function normalizeTerminalCommand(command: string): string {
+    let normalizedCommand = command.trim();
+    normalizedCommand = normalizedCommand.replace(/^env\s+/, "");
+    normalizedCommand = normalizedCommand.replace(/^(?:\w+=(?:"[^"]*"|'[^']*'|\S+)\s+)*/, "");
+    return normalizedCommand;
+}
+
+function isNvimLikeCommand(command: string | null | undefined): boolean {
+    if (!command) {
+        return false;
+    }
+    const normalizedCommand = normalizeTerminalCommand(command);
+    return /^(nvim|vim|vi)\b/.test(normalizedCommand);
 }
 
 interface TerminalViewProps {
@@ -225,9 +241,14 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
     const termFontSize = jotai.useAtomValue(model.fontSizeAtom);
     const fullConfig = globalStore.get(atoms.fullConfigAtom);
     const connFontFamily = fullConfig.connections?.[blockData?.meta?.connection]?.["term:fontfamily"];
+    const nvimFontFamily = fullConfig?.settings?.["term:nvimfontfamily"];
     const isFocused = jotai.useAtomValue(model.nodeModel.isFocused);
     const isMI = jotai.useAtomValue(tabModel.isTermMultiInput);
     const isBasicTerm = termMode != "vdom" && blockData?.meta?.controller != "cmd"; // needs to match isBasicTerm
+    const shellIntegrationStatus = jotai.useAtomValue(termWrapInst?.shellIntegrationStatusAtom ?? NullShellIntegrationStatusAtom);
+    const lastCommand = jotai.useAtomValue(termWrapInst?.lastCommandAtom ?? NullLastCommandAtom);
+    const useEditorFontForTerminal =
+        shellIntegrationStatus === "running-command" && isNvimLikeCommand(lastCommand) && nvimFontFamily?.trim();
 
     // search
     const searchProps = useSearch({
@@ -379,6 +400,20 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
             setTermWrapInst(null);
         };
     }, [blockId, termSettings, termFontSize, connFontFamily]);
+
+    React.useEffect(() => {
+        if (!termWrapInst?.terminal) {
+            return;
+        }
+        const nextFontFamily = buildTerminalFontFamilyStack(
+            useEditorFontForTerminal ? nvimFontFamily : termSettings?.["term:fontfamily"] ?? connFontFamily ?? "1984 Body",
+            termSettings?.["term:fontfallback"]
+        );
+        if (termWrapInst.terminal.options.fontFamily !== nextFontFamily) {
+            termWrapInst.terminal.options.fontFamily = nextFontFamily;
+            termWrapInst.terminal.refresh(0, termWrapInst.terminal.rows - 1);
+        }
+    }, [termWrapInst, useEditorFontForTerminal, nvimFontFamily, termSettings, connFontFamily]);
 
     React.useEffect(() => {
         if (termModeRef.current == "vdom" && termMode == "term") {

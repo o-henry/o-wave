@@ -666,7 +666,7 @@ function registerGlobalKeys() {
         return true;
     });
     globalKeyMap.set("Cmd:Shift:\\", () => {
-        toggleBottomTabBarVisibility();
+        WorkspaceLayoutModel.getInstance().toggleFloatingTabSwitcherVisible();
         return true;
     });
     globalKeyMap.set("Cmd:Shift:h", () => {

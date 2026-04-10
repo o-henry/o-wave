@@ -114,6 +114,11 @@
 
         &.block-no-padding {
             padding: 0;
+            scrollbar-width: none;
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
         }
     }
 
@@ -293,8 +298,14 @@
                         justify-content: space-between;
                         align-items: center;
 
+                        &.block-frame-div-url {
+                            justify-content: flex-start;
+                            gap: 4px;
+                        }
+
                         .input-wrapper {
                             flex-grow: 1;
+                            min-width: 0;
 
                             input {
                                 background-color: transparent;
@@ -308,6 +319,9 @@
                                 box-sizing: border-box;
                                 opacity: 0.7;
                                 font-weight: 500;
+                                height: 20px;
+                                padding-left: 7px;
+                                font-family: "Departure Mono", "DMMono Nerd Font", monospace;
                             }
                         }
 
@@ -322,6 +336,28 @@
                             display: flex;
                             align-items: center;
                             justify-content: center;
+                        }
+
+                        &.block-frame-div-url {
+                            .wave-iconbutton {
+                                width: 20px;
+                                min-width: 20px;
+                                height: 20px;
+                                border-radius: 9999px;
+                                background: transparent;
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin-left: 0;
+
+                                &:hover {
+                                    background: var(--term-header-hover-bg, var(--highlight-bg-color));
+                                }
+                            }
+
+                            .wave-iconbutton.web-refresh-button i {
+                                font-size: 10px;
+                            }
                         }
                     }
 
@@ -523,6 +559,18 @@
                             line-height: 1;
                             font-size: 12px;
                         }
+                    }
+                }
+
+                &.web-header-compact {
+                    gap: 6px;
+
+                    .block-frame-default-header-iconview {
+                        display: none;
+                    }
+
+                    .block-frame-textelems-wrapper {
+                        gap: 6px;
                     }
                 }
             }

@@ -35,6 +35,7 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
     const currentTheme = settings["term:theme"] ?? "";
     const currentFontSize = settings["term:fontsize"];
     const currentFontFamily = settings["term:fontfamily"] ?? "";
+    const currentNvimFontFamily = settings["term:nvimfontfamily"] ?? "Departure Mono";
     const currentFontFallback = settings["term:fontfallback"] ?? "";
     const currentEditorFontFamily = settings["editor:fontfamily"] ?? "DMMono Nerd Font";
     const topBarAutoHide = settings["app:topbarautohide"] ?? false;
@@ -43,6 +44,7 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
     const currentRunCommand = settings["preview:runcommand"] ?? defaultUnityRunCommand;
 
     const [fontFamilyInput, setFontFamilyInput] = useState(currentFontFamily);
+    const [nvimFontFamilyInput, setNvimFontFamilyInput] = useState(currentNvimFontFamily);
     const [fontFallbackInput, setFontFallbackInput] = useState(currentFontFallback);
     const [fontSizeInput, setFontSizeInput] = useState(currentFontSize == null ? "" : String(currentFontSize));
     const [editorFontFamilyInput, setEditorFontFamilyInput] = useState(currentEditorFontFamily);
@@ -52,6 +54,10 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
     useEffect(() => {
         setFontFamilyInput(currentFontFamily);
     }, [currentFontFamily]);
+
+    useEffect(() => {
+        setNvimFontFamilyInput(currentNvimFontFamily);
+    }, [currentNvimFontFamily]);
 
     useEffect(() => {
         setFontFallbackInput(currentFontFallback);
@@ -121,6 +127,13 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
             "term:fontfallback": trimmedValue === "" ? null : trimmedValue,
         });
     }, [fontFallbackInput, model]);
+
+    const applyNvimFontFamily = useCallback(async () => {
+        const trimmedValue = nvimFontFamilyInput.trim();
+        await model.updateSettingsValues({
+            "term:nvimfontfamily": trimmedValue === "" ? null : trimmedValue,
+        });
+    }, [model, nvimFontFamilyInput]);
 
     const applyEditorFontFamily = useCallback(async () => {
         const trimmedValue = editorFontFamilyInput.trim();
@@ -249,6 +262,47 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
                             onClick={() => {
                                 setFontFamilyInput("");
                                 void model.updateSettingsValues({ "term:fontfamily": null });
+                            }}
+                            className="rounded-full border border-border px-3 py-1 text-xs text-secondary transition-colors hover:bg-highlightbg hover:text-primary cursor-pointer"
+                        >
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section className="rounded-lg border border-border bg-black/10 p-4">
+                <div className="mb-1 text-sm font-medium text-primary">Neovim Terminal Font Family</div>
+                <div className="mb-3 text-xs text-muted-foreground">
+                    터미널에서 <span className="font-semibold text-primary">nvim / vim / vi</span> 실행 중일 때만 해당 pane에 적용됩니다.
+                    비우면 일반 터미널 폰트를 그대로 사용합니다.
+                </div>
+                <div className="flex flex-col gap-3">
+                    <Input
+                        value={nvimFontFamilyInput}
+                        onChange={setNvimFontFamilyInput}
+                        onBlur={() => void applyNvimFontFamily()}
+                        placeholder='예: "Departure Mono"'
+                    />
+                    <div className="flex flex-wrap gap-2">
+                        {["Departure Mono", ...commonMonospaceFonts].map((fontName) => (
+                            <button
+                                key={fontName}
+                                type="button"
+                                onClick={() => {
+                                    setNvimFontFamilyInput(fontName);
+                                    void model.updateSettingsValues({ "term:nvimfontfamily": fontName });
+                                }}
+                                className="rounded-full border border-border px-3 py-1 text-xs text-secondary transition-colors hover:bg-highlightbg hover:text-primary cursor-pointer"
+                            >
+                                {fontName}
+                            </button>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setNvimFontFamilyInput("");
+                                void model.updateSettingsValues({ "term:nvimfontfamily": null });
                             }}
                             className="rounded-full border border-border px-3 py-1 text-xs text-secondary transition-colors hover:bg-highlightbg hover:text-primary cursor-pointer"
                         >

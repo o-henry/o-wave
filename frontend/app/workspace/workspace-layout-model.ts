@@ -46,6 +46,7 @@ class WorkspaceLayoutModel {
     vtabPanelWrapperRef: HTMLDivElement | null;
     panelVisibleAtom: jotai.PrimitiveAtom<boolean>;
     workspaceSidebarVisibleAtom: jotai.PrimitiveAtom<boolean>;
+    floatingTabSwitcherVisibleAtom: jotai.PrimitiveAtom<boolean>;
 
     private inResize: boolean;
     private aiPanelVisible: boolean;
@@ -73,6 +74,7 @@ class WorkspaceLayoutModel {
         this.vtabVisible = false;
         this.panelVisibleAtom = jotai.atom(false);
         this.workspaceSidebarVisibleAtom = jotai.atom(true);
+        this.floatingTabSwitcherVisibleAtom = jotai.atom(false);
         this.widgetsSidebarVisibleAtom = jotai.atom(
             (get) =>
                 get(getOrefMetaKeyAtom(WOS.makeORef("workspace", this.getWorkspaceId()), "layout:widgetsvisible")) ??
@@ -123,6 +125,18 @@ class WorkspaceLayoutModel {
 
     toggleWorkspaceSidebarVisible(): void {
         this.setWorkspaceSidebarVisible(!this.getWorkspaceSidebarVisible());
+    }
+
+    getFloatingTabSwitcherVisible(): boolean {
+        return globalStore.get(this.floatingTabSwitcherVisibleAtom);
+    }
+
+    setFloatingTabSwitcherVisible(visible: boolean): void {
+        globalStore.set(this.floatingTabSwitcherVisibleAtom, visible);
+    }
+
+    toggleFloatingTabSwitcherVisible(): void {
+        this.setFloatingTabSwitcherVisible(!this.getFloatingTabSwitcherVisible());
     }
 
     static getInstance(): WorkspaceLayoutModel {

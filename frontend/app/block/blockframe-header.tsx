@@ -23,6 +23,7 @@ import { globalStore } from "@/app/store/jotaiStore";
 import { uxCloseBlock } from "@/app/store/keymodel";
 import { TabRpcClient } from "@/app/store/wshrpcutil";
 import { useWaveEnv } from "@/app/waveenv/waveenv";
+import { WorkspaceLayoutModel } from "@/app/workspace/workspace-layout-model";
 import { IconButton } from "@/element/iconbutton";
 import { NodeModel } from "@/layout/index";
 import * as util from "@/util/util";
@@ -305,9 +306,12 @@ const BlockFrame_Header = ({
     const iconColor = jotai.useAtomValue(waveEnv.getBlockMetaKeyAtom(nodeModel.blockId, "icon:color"));
     const dragHandleRef = preview ? null : nodeModel.dragHandleRef;
     const isTerminalBlock = metaView === "term";
+    const floatingTabSwitcherVisible = jotai.useAtomValue(
+        WorkspaceLayoutModel.getInstance().floatingTabSwitcherVisibleAtom
+    );
     viewName = metaFrameTitle ?? viewName;
     viewIconUnion = metaFrameIcon ?? viewIconUnion;
-    const showViewIcon = !(metaView === "preview" && metaFrameIcon == null);
+    const showViewIcon = metaView !== "web" && !(metaView === "preview" && metaFrameIcon == null);
     const showIconViewSection = showViewIcon || (viewName && !hideViewName);
 
     React.useEffect(() => {
@@ -324,6 +328,7 @@ const BlockFrame_Header = ({
         <div
             className={cn(
                 "block-frame-default-header",
+                metaView === "web" && "web-header-compact",
                 isTerminalBlock && "term-header-minimal !pl-[2px]"
             )}
             data-role="block-header"
@@ -360,9 +365,20 @@ const BlockFrame_Header = ({
                 />
             )}
             {useTermHeader && (badge || isTerminalBlock) && (
-                <div
-                    className="pointer-events-none flex items-center px-1"
-                    style={{ color: badge?.color || "#fbbf24" }}
+                <button
+                    type="button"
+                    className="flex items-center px-1"
+                    style={{
+                        WebkitAppRegion: "no-drag",
+                        color: badge?.color || "#fbbf24",
+                        opacity: floatingTabSwitcherVisible ? 1 : 0.7,
+                    }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        WorkspaceLayoutModel.getInstance().toggleFloatingTabSwitcherVisible();
+                    }}
+                    title={floatingTabSwitcherVisible ? "Hide tab switcher" : "Show tab switcher"}
+                    aria-label={floatingTabSwitcherVisible ? "Hide tab switcher" : "Show tab switcher"}
                 >
                     <span
                         aria-hidden="true"
@@ -379,7 +395,7 @@ const BlockFrame_Header = ({
                             maskSize: "contain",
                         }}
                     />
-                </div>
+                </button>
             )}
             <HeaderTextElems viewModel={viewModel} blockId={nodeModel.blockId} preview={preview} error={error} />
             <HeaderEndIcons viewModel={viewModel} nodeModel={nodeModel} blockId={nodeModel.blockId} />

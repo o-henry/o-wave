@@ -1434,6 +1434,7 @@ declare global {
         "term:*"?: boolean;
         "term:fontsize"?: number;
         "term:fontfamily"?: string;
+        "term:nvimfontfamily"?: string;
         "term:fontfallback"?: string;
         "term:theme"?: string;
         "term:disablewebgl"?: boolean;

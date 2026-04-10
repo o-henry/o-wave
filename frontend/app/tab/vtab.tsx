@@ -162,21 +162,25 @@ export function VTab({
             onMouseEnter={() => onHoverChanged?.(true)}
             onMouseLeave={() => onHoverChanged?.(false)}
             className={cn(
-                "group relative flex h-9 w-full shrink-0 cursor-pointer items-center pl-3 text-xs transition-colors select-none",
+                "group relative flex h-8 w-full shrink-0 cursor-pointer items-center pl-3 text-xs transition-colors select-none",
                 "whitespace-nowrap",
                 active ? "text-primary" : isReordering ? "text-secondary" : "text-secondary hover:text-primary",
                 isDragging && "opacity-50"
             )}
         >
-            {active && (
-                <div className="pointer-events-none absolute inset-x-1 inset-y-[4px] border-[0.5px] border-[#f1b6c8] bg-foreground/10" />
-            )}
-            {!active && !isReordering && (
-                <div className="pointer-events-none absolute inset-x-1 inset-y-[4px] bg-transparent transition-colors group-hover:bg-foreground/10" />
-            )}
             <div
                 className={cn(
-                    "pointer-events-none absolute bottom-0 left-[5%] right-[5%] h-px bg-border/70",
+                    "pointer-events-none absolute inset-x-1 inset-y-[3px] border-[0.5px] transition-colors",
+                    active
+                        ? "border-[#f1b6c8] bg-foreground/10"
+                        : isReordering
+                          ? "border-transparent bg-transparent"
+                          : "border-transparent bg-transparent group-hover:bg-foreground/10"
+                )}
+            />
+            <div
+                className={cn(
+                    "pointer-events-none absolute bottom-[3px] left-[5%] right-[5%] h-px bg-border/70",
                     !showDivider && "opacity-0"
                 )}
             />
