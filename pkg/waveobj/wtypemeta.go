@@ -84,6 +84,9 @@ type MetaTSType struct {
 	EditorStickyScrollEnabled bool    `json:"editor:stickyscrollenabled,omitempty"`
 	EditorWordWrap            bool    `json:"editor:wordwrap,omitempty"`
 	EditorFontSize            float64 `json:"editor:fontsize,omitempty"`
+	EditorFontFamily          string  `json:"editor:fontfamily,omitempty"`
+	EditorFontLigatures       *bool   `json:"editor:fontligatures,omitempty"`
+	EditorFontFeatures        string  `json:"editor:fontfeatures,omitempty"`
 
 	GraphClear     bool     `json:"graph:*,omitempty"`
 	GraphNumPoints int      `json:"graph:numpoints,omitempty"`
@@ -102,8 +105,8 @@ type MetaTSType struct {
 	BgActiveBorderColor string  `json:"bg:activebordercolor,omitempty"` // frame:activebordercolor
 
 	// for workspace
-	LayoutVTabBarWidth      int  `json:"layout:vtabbarwidth,omitempty"`
-	LayoutWidgetsVisible    *bool `json:"layout:widgetsvisible,omitempty"`
+	LayoutVTabBarWidth   int   `json:"layout:vtabbarwidth,omitempty"`
+	LayoutWidgetsVisible *bool `json:"layout:widgetsvisible,omitempty"`
 
 	// for tabs+waveai
 	WaveAiPanelOpen     bool   `json:"waveai:panelopen,omitempty"`

@@ -50,6 +50,14 @@ function CodeEditPreview({ model }: SpecializedViewProps) {
             fireAndForget(() => model.setEditMode(false));
             return true;
         }
+        if (checkKeyPressed(e, "Cmd:Shift:b")) {
+            fireAndForget(() => model.runProjectTask("build"));
+            return true;
+        }
+        if (checkKeyPressed(e, "Cmd:Shift:r")) {
+            fireAndForget(() => model.runProjectTask("run"));
+            return true;
+        }
         if (checkKeyPressed(e, "Cmd:s") || checkKeyPressed(e, "Ctrl:s")) {
             fireAndForget(model.handleFileSave.bind(model));
             return true;
@@ -102,6 +110,7 @@ function CodeEditPreview({ model }: SpecializedViewProps) {
             fileName={fileName}
             language={language}
             readonly={fileInfo.readonly}
+            enableVim={true}
             onChange={(text) => setNewFileContent(text)}
             onMount={onMount}
         />

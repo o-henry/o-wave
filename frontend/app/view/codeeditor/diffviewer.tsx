@@ -13,6 +13,8 @@ interface DiffViewerProps {
     modified: string;
     language?: string;
     fileName: string;
+    inlineDiff?: boolean;
+    minimapEnabled?: boolean;
 }
 
 function defaultDiffEditorOptions(): MonacoTypes.editor.IDiffEditorOptions {
@@ -36,10 +38,19 @@ function defaultDiffEditorOptions(): MonacoTypes.editor.IDiffEditorOptions {
     return opts;
 }
 
-export function DiffViewer({ blockId, original, modified, language, fileName }: DiffViewerProps) {
+export function DiffViewer({
+    blockId,
+    original,
+    modified,
+    language,
+    fileName,
+    inlineDiff: inlineDiffOverride,
+    minimapEnabled: minimapEnabledOverride,
+}: DiffViewerProps) {
     const minimapEnabled = useOverrideConfigAtom(blockId, "editor:minimapenabled") ?? false;
     const fontSize = boundNumber(useOverrideConfigAtom(blockId, "editor:fontsize"), 6, 64);
-    const inlineDiff = useOverrideConfigAtom(blockId, "editor:inlinediff");
+    const fontFamily = useOverrideConfigAtom(blockId, "editor:fontfamily") ?? "DMMono Nerd Font";
+    const inlineDiffSetting = useOverrideConfigAtom(blockId, "editor:inlinediff");
     const uuidRef = useRef(crypto.randomUUID()).current;
     let editorPath: string;
     if (fileName) {
@@ -51,13 +62,15 @@ export function DiffViewer({ blockId, original, modified, language, fileName }: 
 
     const editorOpts = useMemo(() => {
         const opts = defaultDiffEditorOptions();
-        opts.minimap.enabled = minimapEnabled;
+        opts.minimap.enabled = minimapEnabledOverride ?? minimapEnabled;
         opts.fontSize = fontSize;
-        if (inlineDiff != null) {
-            opts.renderSideBySide = !inlineDiff;
+        opts.fontFamily = `"${fontFamily.replace(/"/g, '\\"')}", "1984 Body", monospace`;
+        const resolvedInlineDiff = inlineDiffOverride ?? inlineDiffSetting;
+        if (resolvedInlineDiff != null) {
+            opts.renderSideBySide = !resolvedInlineDiff;
         }
         return opts;
-    }, [minimapEnabled, fontSize, inlineDiff]);
+    }, [minimapEnabled, minimapEnabledOverride, fontSize, fontFamily, inlineDiffOverride, inlineDiffSetting]);
 
     return (
         <div className="flex flex-col w-full h-full overflow-hidden items-center justify-center">

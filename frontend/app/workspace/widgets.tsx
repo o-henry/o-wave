@@ -191,6 +191,7 @@ function getShortcutItems(widgets: WidgetConfigType[], featureWaveAppBuilder: bo
         { label: "Settings", shortcut: "CMD+," },
         { label: "Workspace Sidebar", shortcut: "CMD+\\" },
         { label: "Bottom Tab Bar", shortcut: "CMD+SHIFT+\\" },
+        { label: "Top Taskbar Auto Hide", shortcut: "CMD+SHIFT+H" },
     ];
     return [
         ...quickAccessItems.map(({ label, shortcut }) => ({ label, shortcut })),
@@ -201,7 +202,8 @@ function getShortcutItems(widgets: WidgetConfigType[], featureWaveAppBuilder: bo
 
 function getTipsShortcutItems(): { label: string; shortcut: string; note?: string }[] {
     return [
-        { label: "Magnify a Block", shortcut: "CMD+M" },
+        { label: "Minimize Window", shortcut: "CMD+M" },
+        { label: "Magnify a Block", shortcut: "CMD+SHIFT+M" },
         { label: "Connect to a remote server", shortcut: "CMD+G" },
         { label: "Block Settings", shortcut: "HEADER MENU" },
         { label: "Close Block", shortcut: "CMD+W" },
@@ -209,6 +211,7 @@ function getTipsShortcutItems(): { label: string; shortcut: string; note?: strin
         { label: "New Terminal Block", shortcut: "CMD+N" },
         { label: "Open Wave AI Panel", shortcut: "CMD+SHIFT+A" },
         { label: "Toggle Bottom Tab Bar", shortcut: "CMD+SHIFT+\\" },
+        { label: "Toggle Top Taskbar Auto Hide", shortcut: "CMD+SHIFT+H" },
         { label: "Switch To Nth Tab", shortcut: "CMD+1..9" },
         { label: "Previous Tab", shortcut: "CMD+[" },
         { label: "Next Tab", shortcut: "CMD+]" },
@@ -1045,6 +1048,7 @@ const SettingsFloatingWindow = memo(
                                             </div>
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
 

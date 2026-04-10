@@ -15,6 +15,7 @@ const (
 	ConfigKey_AppConfirmQuit                 = "app:confirmquit"
 	ConfigKey_AppHideAiButton                = "app:hideaibutton"
 	ConfigKey_AppBottomBarVisible            = "app:bottombarvisible"
+	ConfigKey_AppTopBarAutoHide              = "app:topbarautohide"
 	ConfigKey_AppDisableCtrlShiftArrows      = "app:disablectrlshiftarrows"
 	ConfigKey_AppDisableCtrlShiftDisplay     = "app:disablectrlshiftdisplay"
 	ConfigKey_AppFocusFollowsCursor          = "app:focusfollowscursor"
@@ -67,6 +68,9 @@ const (
 	ConfigKey_EditorStickyScrollEnabled      = "editor:stickyscrollenabled"
 	ConfigKey_EditorWordWrap                 = "editor:wordwrap"
 	ConfigKey_EditorFontSize                 = "editor:fontsize"
+	ConfigKey_EditorFontFamily               = "editor:fontfamily"
+	ConfigKey_EditorFontLigatures            = "editor:fontligatures"
+	ConfigKey_EditorFontFeatures             = "editor:fontfeatures"
 	ConfigKey_EditorInlineDiff               = "editor:inlinediff"
 
 	ConfigKey_WebClear                       = "web:*"
@@ -85,6 +89,9 @@ const (
 
 	ConfigKey_PreviewShowHiddenFiles         = "preview:showhiddenfiles"
 	ConfigKey_PreviewDefaultSort             = "preview:defaultsort"
+	ConfigKey_PreviewAutoBuildOnSave         = "preview:autobuildonsave"
+	ConfigKey_PreviewBuildCommand            = "preview:buildcommand"
+	ConfigKey_PreviewRunCommand              = "preview:runcommand"
 
 	ConfigKey_TabPreset                      = "tab:preset"
 	ConfigKey_TabConfirmClose                = "tab:confirmclose"

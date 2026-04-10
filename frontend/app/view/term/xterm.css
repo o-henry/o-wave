@@ -128,6 +128,13 @@
     z-index: 0;
 }
 
+.xterm-current-prompt-mask {
+    position: absolute;
+    background: rgb(from var(--term-block-bg-solid, #20232d) r g b / 1);
+    pointer-events: none;
+    z-index: 12;
+}
+
 .xterm .xterm-screen canvas {
     position: absolute;
     left: 0;

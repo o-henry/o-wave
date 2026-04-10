@@ -497,6 +497,14 @@ export function initIpcHandlers() {
         event.sender.reloadIgnoringCache();
     });
 
+    electron.ipcMain.on("minimize-window", (event) => {
+        const window = electron.BrowserWindow.fromWebContents(event.sender);
+        if (window == null) {
+            return;
+        }
+        window.minimize();
+    });
+
     electron.ipcMain.handle("save-text-file", async (event, fileName: string, content: string) => {
         const ww = electron.BrowserWindow.fromWebContents(event.sender);
         if (ww == null) {

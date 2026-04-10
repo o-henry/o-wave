@@ -22,6 +22,9 @@ const commonMonospaceFonts = [
     "Consolas",
     "Fira Code",
 ];
+const defaultUnityBuildCommand =
+    `SLN="$(find . -maxdepth 1 -name '*.sln' | head -n 1)"; if [ -n "$SLN" ]; then dotnet build "$SLN"; else dotnet build; fi`;
+const defaultUnityRunCommand = "open -a Unity .";
 
 export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps) => {
     const env = useWaveEnv<WaveConfigEnv>();
@@ -33,10 +36,18 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
     const currentFontSize = settings["term:fontsize"];
     const currentFontFamily = settings["term:fontfamily"] ?? "";
     const currentFontFallback = settings["term:fontfallback"] ?? "";
+    const currentEditorFontFamily = settings["editor:fontfamily"] ?? "DMMono Nerd Font";
+    const topBarAutoHide = settings["app:topbarautohide"] ?? false;
+    const autoBuildOnSave = settings["preview:autobuildonsave"] ?? true;
+    const currentBuildCommand = settings["preview:buildcommand"] ?? defaultUnityBuildCommand;
+    const currentRunCommand = settings["preview:runcommand"] ?? defaultUnityRunCommand;
 
     const [fontFamilyInput, setFontFamilyInput] = useState(currentFontFamily);
     const [fontFallbackInput, setFontFallbackInput] = useState(currentFontFallback);
     const [fontSizeInput, setFontSizeInput] = useState(currentFontSize == null ? "" : String(currentFontSize));
+    const [editorFontFamilyInput, setEditorFontFamilyInput] = useState(currentEditorFontFamily);
+    const [buildCommandInput, setBuildCommandInput] = useState(currentBuildCommand);
+    const [runCommandInput, setRunCommandInput] = useState(currentRunCommand);
 
     useEffect(() => {
         setFontFamilyInput(currentFontFamily);
@@ -49,6 +60,18 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
     useEffect(() => {
         setFontSizeInput(currentFontSize == null ? "" : String(currentFontSize));
     }, [currentFontSize]);
+
+    useEffect(() => {
+        setEditorFontFamilyInput(currentEditorFontFamily);
+    }, [currentEditorFontFamily]);
+
+    useEffect(() => {
+        setBuildCommandInput(currentBuildCommand);
+    }, [currentBuildCommand]);
+
+    useEffect(() => {
+        setRunCommandInput(currentRunCommand);
+    }, [currentRunCommand]);
 
     const sortedThemeEntries = useMemo(() => {
         return Object.entries(termThemes).sort(([, themeA], [, themeB]) => {
@@ -98,6 +121,51 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
             "term:fontfallback": trimmedValue === "" ? null : trimmedValue,
         });
     }, [fontFallbackInput, model]);
+
+    const applyEditorFontFamily = useCallback(async () => {
+        const trimmedValue = editorFontFamilyInput.trim();
+        await model.updateSettingsValues({
+            "editor:fontfamily": trimmedValue === "" ? null : trimmedValue,
+        });
+    }, [editorFontFamilyInput, model]);
+
+    const toggleTopBarAutoHide = useCallback(async () => {
+        await model.updateSettingsValues({
+            "app:topbarautohide": !topBarAutoHide,
+        });
+    }, [model, topBarAutoHide]);
+
+    const toggleAutoBuildOnSave = useCallback(async () => {
+        await model.updateSettingsValues({
+            "preview:autobuildonsave": !autoBuildOnSave,
+        });
+    }, [autoBuildOnSave, model]);
+
+    const applyBuildCommand = useCallback(async () => {
+        const trimmedValue = buildCommandInput.trim();
+        await model.updateSettingsValues({
+            "preview:buildcommand": trimmedValue === "" ? null : trimmedValue,
+        });
+    }, [buildCommandInput, model]);
+
+    const applyRunCommand = useCallback(async () => {
+        const trimmedValue = runCommandInput.trim();
+        await model.updateSettingsValues({
+            "preview:runcommand": trimmedValue === "" ? null : trimmedValue,
+        });
+    }, [model, runCommandInput]);
+
+    const applyUnityPreset = useCallback(async () => {
+        setEditorFontFamilyInput("Departure Mono");
+        setBuildCommandInput(defaultUnityBuildCommand);
+        setRunCommandInput(defaultUnityRunCommand);
+        await model.updateSettingsValues({
+            "editor:fontfamily": "Departure Mono",
+            "preview:autobuildonsave": true,
+            "preview:buildcommand": defaultUnityBuildCommand,
+            "preview:runcommand": defaultUnityRunCommand,
+        });
+    }, [model]);
 
     return (
         <div className="flex h-full flex-col gap-6 overflow-y-auto p-6 normal-case">
@@ -191,6 +259,29 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
             </section>
 
             <section className="rounded-lg border border-border bg-black/10 p-4">
+                <div className="mb-1 text-sm font-medium text-primary">Top Taskbar</div>
+                <div className="mb-3 text-xs text-muted-foreground">
+                    상단 작업표시줄을 hover 시에만 표시합니다. 단축키는 <span className="font-semibold text-primary">Cmd+Shift+H</span> 입니다.
+                </div>
+                <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={() => void toggleTopBarAutoHide()}
+                        className="rounded-full border border-border px-3 py-1 text-xs text-secondary transition-colors hover:bg-highlightbg hover:text-primary cursor-pointer"
+                    >
+                        {topBarAutoHide ? "Auto Hide On" : "Auto Hide Off"}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => window.dispatchEvent(new CustomEvent("wave:open-settings-shortcuts"))}
+                        className="rounded-full border border-border px-3 py-1 text-xs text-secondary transition-colors hover:bg-highlightbg hover:text-primary cursor-pointer"
+                    >
+                        Open Shortcuts
+                    </button>
+                </div>
+            </section>
+
+            <section className="rounded-lg border border-border bg-black/10 p-4">
                 <div className="mb-1 text-sm font-medium text-primary">Terminal Font Fallback</div>
                 <div className="mb-3 text-xs text-muted-foreground">
                     기본 폰트에 없는 glyph만 대체 렌더링합니다. Nerd icon 보강용 폰트를 넣으면 됩니다.
@@ -226,6 +317,99 @@ export const SettingsVisualContent = memo(({ model }: SettingsVisualContentProps
                         >
                             Reset
                         </button>
+                    </div>
+                </div>
+            </section>
+
+            <section className="rounded-lg border border-border bg-black/10 p-4">
+                <div className="mb-1 text-sm font-medium text-primary">File Editor Font Family</div>
+                <div className="mb-3 text-xs text-muted-foreground">
+                    파일 탭 코드 에디터에 적용됩니다. 비우면 기본 모노스페이스 폰트를 사용합니다.
+                </div>
+                <div className="flex flex-col gap-3">
+                    <Input
+                        value={editorFontFamilyInput}
+                        onChange={setEditorFontFamilyInput}
+                        onBlur={() => void applyEditorFontFamily()}
+                        placeholder='예: "Departure Mono"'
+                    />
+                    <div className="flex flex-wrap gap-2">
+                        {["Departure Mono", ...commonMonospaceFonts].map((fontName) => (
+                            <button
+                                key={fontName}
+                                type="button"
+                                onClick={() => {
+                                    setEditorFontFamilyInput(fontName);
+                                    void model.updateSettingsValues({ "editor:fontfamily": fontName });
+                                }}
+                                className="rounded-full border border-border px-3 py-1 text-xs text-secondary transition-colors hover:bg-highlightbg hover:text-primary cursor-pointer"
+                            >
+                                {fontName}
+                            </button>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEditorFontFamilyInput("");
+                                void model.updateSettingsValues({ "editor:fontfamily": null });
+                            }}
+                            className="rounded-full border border-border px-3 py-1 text-xs text-secondary transition-colors hover:bg-highlightbg hover:text-primary cursor-pointer"
+                        >
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section className="rounded-lg border border-border bg-black/10 p-4">
+                <div className="mb-1 text-sm font-medium text-primary">Unity / C# Workflow</div>
+                <div className="mb-3 text-xs text-muted-foreground">
+                    file pane의 Build / Run 버튼과 자동 빌드 동작을 조정합니다. Unity 프로젝트에서는 `Assets` 기준으로 프로젝트 루트를 잡고, 기본 실행은 Unity Editor 열기로 맞춰뒀습니다.
+                </div>
+                <div className="mb-4 flex flex-wrap gap-2">
+                    <button
+                        type="button"
+                        onClick={() => void applyUnityPreset()}
+                        className="rounded-full border border-border px-3 py-1 text-xs text-secondary transition-colors hover:bg-highlightbg hover:text-primary cursor-pointer"
+                    >
+                        Apply Unity Preset
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => void toggleAutoBuildOnSave()}
+                        className="rounded-full border border-border px-3 py-1 text-xs text-secondary transition-colors hover:bg-highlightbg hover:text-primary cursor-pointer"
+                    >
+                        {autoBuildOnSave ? "Auto Build On Save On" : "Auto Build On Save Off"}
+                    </button>
+                </div>
+                <div className="flex flex-col gap-4">
+                    <div>
+                        <div className="mb-1 text-xs font-medium uppercase tracking-[0.12em] text-secondary">Build Command</div>
+                        <Input
+                            value={buildCommandInput}
+                            onChange={setBuildCommandInput}
+                            onBlur={() => void applyBuildCommand()}
+                            onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                    void applyBuildCommand();
+                                }
+                            }}
+                            placeholder={defaultUnityBuildCommand}
+                        />
+                    </div>
+                    <div>
+                        <div className="mb-1 text-xs font-medium uppercase tracking-[0.12em] text-secondary">Run Command</div>
+                        <Input
+                            value={runCommandInput}
+                            onChange={setRunCommandInput}
+                            onBlur={() => void applyRunCommand()}
+                            onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                    void applyRunCommand();
+                                }
+                            }}
+                            placeholder={defaultUnityRunCommand}
+                        />
                     </div>
                 </div>
             </section>

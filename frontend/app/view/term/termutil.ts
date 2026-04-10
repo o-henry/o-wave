@@ -14,7 +14,7 @@ export function normalizeCursorStyle(cursorStyle: string): TermTypes.Terminal["o
     if (cursorStyle === "underline" || cursorStyle === "bar") {
         return cursorStyle;
     }
-    return "block";
+    return "underline";
 }
 
 function applyTransparencyToColor(hexColor: string, transparency: number): string {

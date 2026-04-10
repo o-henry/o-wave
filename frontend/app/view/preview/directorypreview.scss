@@ -33,11 +33,13 @@
             min-width: fit-content;
             border-bottom: 1px solid var(--border-color);
 
-            .dir-table-head-row {
+                .dir-table-head-row {
                 display: flex;
                 min-width: var(--min-row-width);
                 padding: 4px 6px;
                 font-size: 0.75rem;
+                text-transform: uppercase;
+                font-family: "Departure Mono", "DMMono Nerd Font", monospace;
 
                 .dir-table-head-cell {
                     flex: 0 0 auto;
@@ -49,13 +51,14 @@
                     white-space: nowrap;
                     overflow: hidden;
 
-                    .dir-table-head-cell-content {
-                        padding: 2px 4px;
-                        display: flex;
-                        gap: 0.3rem;
-                        flex: 1 1 auto;
-                        overflow-x: hidden;
-                        letter-spacing: -0.12px;
+                        .dir-table-head-cell-content {
+                            padding: 2px 4px;
+                            display: flex;
+                            gap: 0.3rem;
+                            flex: 1 1 auto;
+                            overflow-x: hidden;
+                            letter-spacing: -0.12px;
+                            text-transform: uppercase;
 
                         .dir-table-head-direction {
                             margin-right: 0.2rem;
@@ -156,6 +159,8 @@
                         cursor: default;
                         font-size: 12px;
                         flex: 0 0 auto;
+                        text-transform: uppercase;
+                        font-family: "Departure Mono", "DMMono Nerd Font", monospace;
 
                         &.col-size {
                             text-align: right;
@@ -172,12 +177,21 @@
                         .dir-table-size,
                         .dir-table-lastmod {
                             color: var(--secondary-text-color);
-                            font-family: Hack;
+                            font-family: "Departure Mono", "DMMono Nerd Font", monospace;
                             font-size: 11px;
                         }
 
                         .dir-table-name {
                             font-weight: 500;
+                            text-transform: uppercase;
+                        }
+
+                        .dir-table-lastmod,
+                        .dir-table-modestr,
+                        .dir-table-size,
+                        .dir-table-name,
+                        .dir-table-type {
+                            letter-spacing: 0.02em;
                         }
                     }
                 }

@@ -72,6 +72,22 @@ export class ClientServiceType {
 
 export const ClientService = new ClientServiceType();
 
+// gitservice.GitService (git)
+export class GitServiceType {
+    waveEnv: WaveEnv;
+
+    constructor(waveEnv?: WaveEnv) {
+        this.waveEnv = waveEnv;
+    }
+
+    // get a local git code review snapshot for uncommitted changes
+    GetCodeReview(path: string): Promise<CodeReviewData> {
+        return callBackendService(this?.waveEnv, "git", "GetCodeReview", Array.from(arguments))
+    }
+}
+
+export const GitService = new GitServiceType();
+
 // objectservice.ObjectService (object)
 export class ObjectServiceType {
     waveEnv: WaveEnv;
@@ -220,6 +236,7 @@ export const WorkspaceService = new WorkspaceServiceType();
 export const AllServiceTypes = {
     "block": BlockServiceType,
     "client": ClientServiceType,
+    "git": GitServiceType,
     "object": ObjectServiceType,
     "userinput": UserInputServiceType,
     "window": WindowServiceType,
@@ -229,6 +246,7 @@ export const AllServiceTypes = {
 export const AllServiceImpls = {
     "block": BlockService,
     "client": ClientService,
+    "git": GitService,
     "object": ObjectService,
     "userinput": UserInputService,
     "window": WindowService,

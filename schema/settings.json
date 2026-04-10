@@ -32,6 +32,9 @@
         "app:bottombarvisible": {
           "type": "boolean"
         },
+        "app:topbarautohide": {
+          "type": "boolean"
+        },
         "app:disablectrlshiftarrows": {
           "type": "boolean"
         },
@@ -190,6 +193,15 @@
         "editor:fontsize": {
           "type": "number"
         },
+        "editor:fontfamily": {
+          "type": "string"
+        },
+        "editor:fontligatures": {
+          "type": "boolean"
+        },
+        "editor:fontfeatures": {
+          "type": "string"
+        },
         "editor:inlinediff": {
           "type": "boolean"
         },
@@ -235,6 +247,15 @@
             "name",
             "modtime"
           ]
+        },
+        "preview:autobuildonsave": {
+          "type": "boolean"
+        },
+        "preview:buildcommand": {
+          "type": "string"
+        },
+        "preview:runcommand": {
+          "type": "string"
         },
         "tab:preset": {
           "type": "string"

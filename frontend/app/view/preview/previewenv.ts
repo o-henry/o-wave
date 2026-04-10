@@ -30,6 +30,16 @@ export type PreviewEnv = WaveEnvSubset<{
         object: WaveEnv["services"]["object"];
     };
     wos: WaveEnv["wos"];
-    getSettingsKeyAtom: SettingsKeyAtomFnType<"preview:showhiddenfiles" | "editor:fontsize" | "preview:defaultsort">;
+    getSettingsKeyAtom: SettingsKeyAtomFnType<
+        | "preview:showhiddenfiles"
+        | "editor:fontsize"
+        | "editor:fontfamily"
+        | "editor:fontligatures"
+        | "editor:fontfeatures"
+        | "preview:defaultsort"
+        | "preview:autobuildonsave"
+        | "preview:buildcommand"
+        | "preview:runcommand"
+    >;
     getConnStatusAtom: WaveEnv["getConnStatusAtom"];
 }>;

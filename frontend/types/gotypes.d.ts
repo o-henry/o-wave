@@ -226,6 +226,30 @@ declare global {
         newactivetabid?: string;
     };
 
+    // gitservice.CodeReviewData
+    type CodeReviewData = {
+        reporoot: string;
+        branch: string;
+        changescope: string;
+        filecount: number;
+        added: number;
+        removed: number;
+        files: CodeReviewFile[];
+    };
+
+    // gitservice.CodeReviewFile
+    type CodeReviewFile = {
+        path: string;
+        previouspath?: string;
+        status: string;
+        added: number;
+        removed: number;
+        binary?: boolean;
+        toolarge?: boolean;
+        original?: string;
+        modified?: string;
+    };
+
     // wshrpc.CommandAuthenticateJobManagerData
     type CommandAuthenticateJobManagerData = {
         jobid: string;
@@ -1148,6 +1172,9 @@ declare global {
         "editor:stickyscrollenabled"?: boolean;
         "editor:wordwrap"?: boolean;
         "editor:fontsize"?: number;
+        "editor:fontfamily"?: string;
+        "editor:fontligatures"?: boolean;
+        "editor:fontfeatures"?: string;
         "graph:*"?: boolean;
         "graph:numpoints"?: number;
         "graph:metrics"?: string[];
@@ -1382,6 +1409,7 @@ declare global {
         "app:confirmquit"?: boolean;
         "app:hideaibutton"?: boolean;
         "app:bottombarvisible"?: boolean;
+        "app:topbarautohide"?: boolean;
         "app:disablectrlshiftarrows"?: boolean;
         "app:disablectrlshiftdisplay"?: boolean;
         "app:focusfollowscursor"?: string;
@@ -1429,6 +1457,9 @@ declare global {
         "editor:stickyscrollenabled"?: boolean;
         "editor:wordwrap"?: boolean;
         "editor:fontsize"?: number;
+        "editor:fontfamily"?: string;
+        "editor:fontligatures"?: boolean;
+        "editor:fontfeatures"?: string;
         "editor:inlinediff"?: boolean;
         "web:*"?: boolean;
         "web:openlinksinternally"?: boolean;
@@ -1443,6 +1474,9 @@ declare global {
         "markdown:fixedfontsize"?: number;
         "preview:showhiddenfiles"?: boolean;
         "preview:defaultsort"?: string;
+        "preview:autobuildonsave"?: boolean;
+        "preview:buildcommand"?: string;
+        "preview:runcommand"?: string;
         "tab:preset"?: string;
         "tab:confirmclose"?: boolean;
         "tab:background"?: string;

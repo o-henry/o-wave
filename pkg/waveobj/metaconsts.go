@@ -82,6 +82,9 @@ const (
 	MetaKey_EditorStickyScrollEnabled        = "editor:stickyscrollenabled"
 	MetaKey_EditorWordWrap                   = "editor:wordwrap"
 	MetaKey_EditorFontSize                   = "editor:fontsize"
+	MetaKey_EditorFontFamily                 = "editor:fontfamily"
+	MetaKey_EditorFontLigatures              = "editor:fontligatures"
+	MetaKey_EditorFontFeatures               = "editor:fontfeatures"
 
 	MetaKey_GraphClear                       = "graph:*"
 	MetaKey_GraphNumPoints                   = "graph:numpoints"

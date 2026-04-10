@@ -66,6 +66,7 @@ type SettingsType struct {
 	AppConfirmQuit                *bool  `json:"app:confirmquit,omitempty"`
 	AppHideAiButton               bool   `json:"app:hideaibutton,omitempty"`
 	AppBottomBarVisible           *bool  `json:"app:bottombarvisible,omitempty"`
+	AppTopBarAutoHide             *bool  `json:"app:topbarautohide,omitempty"`
 	AppDisableCtrlShiftArrows     bool   `json:"app:disablectrlshiftarrows,omitempty"`
 	AppDisableCtrlShiftDisplay    bool   `json:"app:disablectrlshiftdisplay,omitempty"`
 	AppFocusFollowsCursor         string `json:"app:focusfollowscursor,omitempty" jsonschema:"enum=off,enum=on,enum=term"`
@@ -118,6 +119,9 @@ type SettingsType struct {
 	EditorStickyScrollEnabled bool    `json:"editor:stickyscrollenabled,omitempty"`
 	EditorWordWrap            bool    `json:"editor:wordwrap,omitempty"`
 	EditorFontSize            float64 `json:"editor:fontsize,omitempty"`
+	EditorFontFamily          string  `json:"editor:fontfamily,omitempty"`
+	EditorFontLigatures       *bool   `json:"editor:fontligatures,omitempty"`
+	EditorFontFeatures        string  `json:"editor:fontfeatures,omitempty"`
 	EditorInlineDiff          bool    `json:"editor:inlinediff,omitempty"`
 
 	WebClear               bool   `json:"web:*,omitempty"`
@@ -136,6 +140,9 @@ type SettingsType struct {
 
 	PreviewShowHiddenFiles *bool  `json:"preview:showhiddenfiles,omitempty"`
 	PreviewDefaultSort     string `json:"preview:defaultsort,omitempty" jsonschema:"enum=name,enum=modtime"`
+	PreviewAutoBuildOnSave *bool  `json:"preview:autobuildonsave,omitempty"`
+	PreviewBuildCommand    string `json:"preview:buildcommand,omitempty"`
+	PreviewRunCommand      string `json:"preview:runcommand,omitempty"`
 
 	TabPreset       string `json:"tab:preset,omitempty"`
 	TabConfirmClose bool   `json:"tab:confirmclose,omitempty"`

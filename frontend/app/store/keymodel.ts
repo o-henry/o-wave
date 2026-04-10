@@ -239,6 +239,15 @@ function toggleBottomTabBarVisibility() {
     );
 }
 
+function toggleTopBarAutoHide() {
+    const currentValue = globalStore.get(getSettingsKeyAtom("app:topbarautohide")) ?? false;
+    fireAndForget(() =>
+        RpcApi.SetConfigCommand(TabRpcClient, {
+            "app:topbarautohide": !currentValue,
+        } as SettingsType)
+    );
+}
+
 function switchBlockByBlockNum(index: number) {
     const layoutModel = getLayoutModelForStaticTab();
     if (!layoutModel) {
@@ -641,6 +650,10 @@ function registerGlobalKeys() {
         return true;
     });
     globalKeyMap.set("Cmd:m", () => {
+        getApi().minimizeWindow();
+        return true;
+    });
+    globalKeyMap.set("Cmd:Shift:m", () => {
         const layoutModel = getLayoutModelForStaticTab();
         const focusedNode = globalStore.get(layoutModel.focusedNode);
         if (focusedNode != null) {
@@ -654,6 +667,10 @@ function registerGlobalKeys() {
     });
     globalKeyMap.set("Cmd:Shift:\\", () => {
         toggleBottomTabBarVisibility();
+        return true;
+    });
+    globalKeyMap.set("Cmd:Shift:h", () => {
+        toggleTopBarAutoHide();
         return true;
     });
     globalKeyMap.set("Ctrl:Shift:ArrowUp", () => {

@@ -107,7 +107,7 @@ const QuickTips = () => {
                         </IconBox>
                         <div className="flex flex-col gap-0.5 flex-1">
                             <span className="text-[15px]">Magnify a Block</span>
-                            <KeyBinding keyDecl="Cmd:m" />
+                            <KeyBinding keyDecl="Cmd:Shift:m" />
                         </div>
                     </div>
                     <div className="flex items-center gap-3 p-2 rounded-md hover:bg-white/5 transition-colors">

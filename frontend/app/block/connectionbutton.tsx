@@ -1,14 +1,12 @@
 // Copyright 2026, Command Line Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-import { computeConnColorNum } from "@/app/block/blockutil";
 import { recordTEvent } from "@/app/store/global";
 import { useWaveEnv } from "@/app/waveenv/waveenv";
 import { IconButton } from "@/element/iconbutton";
 import * as util from "@/util/util";
 import * as jotai from "jotai";
 import * as React from "react";
-import DotsSvg from "../asset/dots-anim-4.svg";
 import { BlockEnv } from "./blockenv";
 
 interface ConnectionButtonProps {
@@ -16,18 +14,6 @@ interface ConnectionButtonProps {
     changeConnModalAtom: jotai.PrimitiveAtom<boolean>;
     isTerminalBlock?: boolean;
 }
-
-const terminalMaskIconStyle: React.CSSProperties = {
-    backgroundColor: "currentColor",
-    WebkitMaskImage: 'url("workspace-icons/terminal.svg")',
-    maskImage: 'url("workspace-icons/terminal.svg")',
-    WebkitMaskRepeat: "no-repeat",
-    maskRepeat: "no-repeat",
-    WebkitMaskPosition: "center",
-    maskPosition: "center",
-    WebkitMaskSize: "contain",
-    maskSize: "contain",
-};
 
 export const ConnectionButton = React.memo(
     React.forwardRef<HTMLDivElement, ConnectionButtonProps>(
@@ -37,20 +23,14 @@ export const ConnectionButton = React.memo(
             const isLocal = util.isLocalConnName(connection);
             const connStatus = jotai.useAtomValue(waveEnv.getConnStatusAtom(connection));
             const localName = jotai.useAtomValue(waveEnv.getLocalHostDisplayNameAtom());
-            let showDisconnectedSlash = false;
-            let connIconElem: React.ReactNode = null;
-            const connColorNum = computeConnColorNum(connStatus);
-            let color = `var(--conn-icon-color-${connColorNum})`;
             const clickHandler = function () {
                 recordTEvent("action:other", { "action:type": "conndropdown", "action:initiator": "mouse" });
                 setConnModalOpen(true);
             };
             let titleText = null;
-            let shouldSpin = false;
             let connDisplayName: string = null;
             let extraDisplayNameClassName = "";
             if (isLocal) {
-                color = "var(--term-conn-local-color, var(--color-secondary))";
                 if (connection === "local:gitbash") {
                     titleText = "Connected to Git Bash";
                     connDisplayName = "Git Bash";
@@ -65,64 +45,23 @@ export const ConnectionButton = React.memo(
                             'uppercase opacity-80 group-hover:opacity-100 [font-family:"Departure_Mono","DM_Mono_Nerd_Font",monospace]';
                     }
                 }
-                connIconElem = (
-                    <span
-                        aria-hidden="true"
-                        className="block shrink-0"
-                        style={{
-                            ...terminalMaskIconStyle,
-                            width: "11px",
-                            height: "11px",
-                            minWidth: "11px",
-                            flex: "0 0 11px",
-                            position: "absolute",
-                            inset: "0",
-                            margin: "auto",
-                        }}
-                    />
-                );
             } else {
                 titleText = "Connected to " + connection;
-                let iconName = "arrow-right-arrow-left";
-                let iconSvg = null;
                 if (connStatus?.status == "connecting") {
-                    color = "var(--warning-color)";
                     titleText = "Connecting to " + connection;
-                    shouldSpin = false;
-                    iconSvg = (
-                        <div className="relative top-[5px] left-[9px] [&_svg]:fill-warning">
-                            <DotsSvg />
-                        </div>
-                    );
                 } else if (connStatus?.status == "error") {
-                    color = "var(--error-color)";
                     titleText = "Error connecting to " + connection;
                     if (connStatus?.error != null) {
                         titleText += " (" + connStatus.error + ")";
                     }
-                    showDisconnectedSlash = true;
                 } else if (!connStatus?.connected) {
-                    color = "var(--grey-text-color)";
                     titleText = "Disconnected from " + connection;
-                    showDisconnectedSlash = true;
                 } else if (connStatus?.connhealthstatus === "degraded" || connStatus?.connhealthstatus === "stalled") {
-                    color = "var(--warning-color)";
-                    iconName = "signal-bars-slash";
                     if (connStatus.connhealthstatus === "degraded") {
                         titleText = "Connection degraded: " + connection;
                     } else {
                         titleText = "Connection stalled: " + connection;
                     }
-                }
-                if (iconSvg != null) {
-                    connIconElem = iconSvg;
-                } else {
-                    connIconElem = (
-                        <i
-                            className={util.cn(util.makeIconClass(iconName, false), "fa-stack-1x mr-[2px]")}
-                            style={{ color: color }}
-                        />
-                    );
                 }
             }
 
@@ -137,45 +76,17 @@ export const ConnectionButton = React.memo(
                         onClick={clickHandler}
                         title={titleText}
                     >
-                        <span
-                            className={util.cn(
-                                "fa-stack flex-[1_1_auto] overflow-hidden",
-                                shouldSpin ? "fa-spin" : null
-                            )}
-                        >
-                            {connIconElem}
-                            <span
-                                aria-hidden="true"
-                                className={util.cn(
-                                    "block shrink-0",
-                                    showDisconnectedSlash ? "opacity-100" : "opacity-0"
-                                )}
-                                style={{
-                                    ...terminalMaskIconStyle,
-                                    backgroundColor: color,
-                                    WebkitMaskImage: 'url("xmark.svg")',
-                                    maskImage: 'url("xmark.svg")',
-                                    width: "11px",
-                                    height: "11px",
-                                    minWidth: "11px",
-                                    flex: "0 0 11px",
-                                    position: "absolute",
-                                    inset: "0",
-                                    margin: "auto",
-                                }}
-                            />
-                        </span>
                         {connDisplayName ? (
                             <div
                                 className={util.cn(
-                                    'flex-[1_2_auto] overflow-hidden pr-1 ellipsis uppercase [font-family:"Departure_Mono","DM_Mono_Nerd_Font",monospace]',
+                                    'flex-1 min-w-0 overflow-hidden pr-1 ellipsis uppercase [font-family:"Departure_Mono","DM_Mono_Nerd_Font",monospace]',
                                     extraDisplayNameClassName
                                 )}
                             >
                                 {connDisplayName}
                             </div>
                         ) : isLocal ? null : (
-                            <div className='flex-[1_2_auto] overflow-hidden pr-1 ellipsis uppercase [font-family:"Departure_Mono","DM_Mono_Nerd_Font",monospace]'>
+                            <div className='flex-1 min-w-0 overflow-hidden pr-1 ellipsis uppercase [font-family:"Departure_Mono","DM_Mono_Nerd_Font",monospace]'>
                                 {connection}
                             </div>
                         )}
