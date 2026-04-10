@@ -192,7 +192,25 @@ export class WebViewModel implements ViewModel {
 
             buttons.push({
                 elemtype: "iconbutton",
-                icon: "arrow-up-right-from-square",
+                icon: (
+                    <span
+                        aria-hidden="true"
+                        className="block shrink-0"
+                        style={{
+                            width: "12px",
+                            height: "12px",
+                            backgroundColor: "currentColor",
+                            WebkitMaskImage: 'url("box-svgrepo-com.svg")',
+                            maskImage: 'url("box-svgrepo-com.svg")',
+                            WebkitMaskRepeat: "no-repeat",
+                            maskRepeat: "no-repeat",
+                            WebkitMaskPosition: "center",
+                            maskPosition: "center",
+                            WebkitMaskSize: "10px 10px",
+                            maskSize: "10px 10px",
+                        }}
+                    />
+                ),
                 title: "Open in External Browser",
                 click: () => {
                     console.log("open external", url);
