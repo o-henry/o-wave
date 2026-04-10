@@ -153,12 +153,6 @@ export class WebViewModel implements ViewModel {
                     click: this.handleMuteChange.bind(this),
                 });
             }
-            divChildren.push({
-                elemtype: "iconbutton",
-                icon: refreshIcon,
-                className: "web-refresh-button",
-                click: this.handleRefresh.bind(this),
-            });
             rtn.push({
                 elemtype: "div",
                 className: clsx("block-frame-div-url", urlWrapperClassName),

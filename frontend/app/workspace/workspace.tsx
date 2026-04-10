@@ -94,7 +94,7 @@ const FloatingTabSwitcher = memo(({ workspace }: { workspace: Workspace }) => {
                 onClick={() => workspaceLayoutModel.setFloatingTabSwitcherVisible(false)}
                 aria-label="Close tab switcher"
             />
-            <div className="pointer-events-auto relative inline-flex max-w-[calc(100vw-56px)] items-center gap-2 overflow-hidden rounded-[26px] border border-white/18 bg-transparent shadow-none backdrop-blur-0">
+            <div className="pointer-events-auto relative inline-flex max-w-[calc(100vw-56px)] items-center overflow-hidden rounded-[26px] border border-white/18 bg-transparent shadow-none backdrop-blur-0">
                 {tabIds.map((id) => (
                     <FloatingTabSwitcherItem
                         key={id}

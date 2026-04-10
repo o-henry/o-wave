@@ -356,7 +356,7 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
             {
                 theme: termTheme,
                 fontSize: termFontSize,
-                lineHeight: 1.12,
+                lineHeight: 1.2,
                 fontFamily: termFontFamily,
                 drawBoldTextInBrightColors: false,
                 fontWeight: "normal",

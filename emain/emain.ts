@@ -66,8 +66,8 @@ let confirmQuit = true;
 
 function getDockIconPath(): string | null {
     const candidates = [
-        path.join(getElectronAppBasePath(), "frontend", "logos", "app-dock-icon.png"),
-        path.join(getElectronAppBasePath(), "frontend", "logos", "wave-logo-dark.png"),
+        path.join(getElectronAppBasePath(), "public", "logos", "app-dock-icon.png"),
+        path.join(getElectronAppBasePath(), "public", "logos", "wave-logo-dark.png"),
     ];
     for (const candidate of candidates) {
         if (existsSync(candidate)) {

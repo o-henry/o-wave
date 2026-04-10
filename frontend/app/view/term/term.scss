@@ -152,10 +152,21 @@
         border: 0;
         background: transparent;
         color: var(--term-header-fg, var(--main-text-color));
-        padding: 0;
+        padding: 2px 0 4px;
+        box-sizing: border-box;
         font: var(--fixed-font);
         line-height: 1.45;
         outline: none;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .term-composer-input::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        display: none;
     }
 
     .term-composer-input::placeholder {
