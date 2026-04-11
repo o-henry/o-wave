@@ -173,6 +173,12 @@ export const AIPanelInput = memo(({ onSubmit, status, model }: AIPanelInputProps
                         onFocus={handleFocus}
                         onBlur={handleBlur}
                         placeholder={placeholder}
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        data-gramm="false"
+                        data-lpignore="true"
                         className={cn(
                             "scrollbar-hide w-full min-h-12 rounded-md text-white px-2 py-2 pr-5 focus:outline-none resize-none overflow-auto bg-zinc-800/80 leading-6"
                         )}
