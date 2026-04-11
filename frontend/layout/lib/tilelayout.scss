@@ -88,7 +88,11 @@
         }
 
         &:not(:only-child) .tile-leaf {
-            padding: calc(var(--gap-size-px) / 2);
+            padding:
+                var(--gap-pad-start-px)
+                var(--gap-pad-end-px)
+                var(--gap-pad-end-px)
+                var(--gap-pad-start-px);
         }
     }
 

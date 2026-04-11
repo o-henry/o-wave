@@ -112,6 +112,8 @@ function TileLayoutComponent({ tabAtom, contents, getCursorPoint }: TileLayoutPr
         () =>
             ({
                 "--gap-size-px": `${gapSizePx}px`,
+                "--gap-pad-start-px": `${Math.floor(gapSizePx / 2)}px`,
+                "--gap-pad-end-px": `${Math.ceil(gapSizePx / 2)}px`,
                 "--animation-time-s": `${animationTimeS}s`,
             }) as CSSProperties,
         [gapSizePx, animationTimeS]

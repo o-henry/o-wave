@@ -344,7 +344,7 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
         const termCursorStyle = normalizeCursorStyle(globalStore.get(getOverrideConfigAtom(blockId, "term:cursor")));
         const termCursorBlink = globalStore.get(getOverrideConfigAtom(blockId, "term:cursorblink")) ?? false;
         const termFontFamily = buildTerminalFontFamilyStack(
-            termSettings?.["term:fontfamily"] ?? connFontFamily ?? "1984 Body",
+            termSettings?.["term:fontfamily"] ?? connFontFamily ?? "DMMono Nerd Font",
             termSettings?.["term:fontfallback"]
         );
         const forceDomRenderer = false;
@@ -406,7 +406,9 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
             return;
         }
         const nextFontFamily = buildTerminalFontFamilyStack(
-            useEditorFontForTerminal ? nvimFontFamily : termSettings?.["term:fontfamily"] ?? connFontFamily ?? "1984 Body",
+            useEditorFontForTerminal
+                ? nvimFontFamily
+                : termSettings?.["term:fontfamily"] ?? connFontFamily ?? "DMMono Nerd Font",
             termSettings?.["term:fontfallback"]
         );
         if (termWrapInst.terminal.options.fontFamily !== nextFontFamily) {
