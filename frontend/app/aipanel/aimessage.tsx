@@ -221,10 +221,10 @@ export const AIMessage = memo(({ message, isStreaming }: AIMessageProps) => {
         <div className={cn("flex", message.role === "user" ? "justify-end" : "justify-start")}>
             <div
                 className={cn(
-                    "px-2 rounded-lg [&>*:first-child]:!mt-0",
+                    "px-2 rounded-lg min-w-0 [&>*:first-child]:!mt-0",
                     message.role === "user"
                         ? "py-2 bg-zinc-700/60 text-white max-w-[calc(100%-50px)]"
-                        : "min-w-[min(100%,500px)]"
+                        : "w-full max-w-full"
                 )}
             >
                 {displayParts.length === 0 && !isStreaming && !thinkingData ? (

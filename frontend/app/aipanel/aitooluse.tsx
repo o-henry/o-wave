@@ -51,7 +51,7 @@ const ToolDescLine = memo(({ text }: ToolDescLineProps) => {
         parts.push(displayText.slice(lastIndex));
     }
 
-    return <div>{parts.length > 0 ? parts : displayText}</div>;
+    return <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{parts.length > 0 ? parts : displayText}</div>;
 });
 
 ToolDescLine.displayName = "ToolDescLine";
@@ -127,10 +127,12 @@ const AIToolUseBatchItem = memo(({ part, effectiveApproval }: AIToolUseBatchItem
     const effectiveErrorMessage = part.data.errormessage || (effectiveApproval === "timeout" ? "Not approved" : null);
 
     return (
-        <div className="text-sm pl-2 flex items-start gap-1.5">
+        <div className="text-sm pl-2 flex items-start gap-1.5 min-w-0">
             <span className={cn("font-bold flex-shrink-0", statusColor)}>{statusIcon}</span>
-            <div className="flex-1">
-                <span className="text-gray-400">{part.data.tooldesc}</span>
+            <div className="flex-1 min-w-0">
+                <span className="text-gray-400 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+                    {part.data.tooldesc}
+                </span>
                 {effectiveErrorMessage && <div className="text-red-300 mt-0.5">{effectiveErrorMessage}</div>}
             </div>
         </div>
@@ -271,9 +273,11 @@ const AIToolUse = memo(({ part, isStreaming }: AIToolUseProps) => {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
-            <div className="flex items-center gap-2">
+            <div className="flex items-start gap-2 min-w-0">
                 <span className="font-bold">{statusIcon}</span>
-                <div className="font-semibold">{toolData.toolname}</div>
+                <div className="font-semibold min-w-0 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+                    {toolData.toolname}
+                </div>
                 <div className="flex-1" />
                 {isFileWriteTool &&
                     toolData.inputfilename &&
@@ -303,7 +307,12 @@ const AIToolUse = memo(({ part, isStreaming }: AIToolUseProps) => {
                     </button>
                 )}
             </div>
-            {toolData.tooldesc && <ToolDesc text={toolData.tooldesc} className="text-sm text-gray-400 pl-6" />}
+            {toolData.tooldesc && (
+                <ToolDesc
+                    text={toolData.tooldesc}
+                    className="text-sm text-gray-400 pl-6 whitespace-pre-wrap break-words [overflow-wrap:anywhere]"
+                />
+            )}
             {(toolData.errormessage || effectiveApproval === "timeout") && (
                 <div className="text-sm text-red-300 pl-6">{toolData.errormessage || "Not approved"}</div>
             )}
@@ -328,9 +337,11 @@ const AIToolProgress = memo(({ part }: AIToolProgressProps) => {
 
     return (
         <div className="flex flex-col gap-1 p-2 rounded bg-zinc-800/60 border border-zinc-700">
-            <div className="flex items-center gap-2">
+            <div className="flex items-start gap-2 min-w-0">
                 <i className="fa fa-spinner fa-spin text-gray-400"></i>
-                <div className="font-semibold">{progressData.toolname}</div>
+                <div className="font-semibold min-w-0 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+                    {progressData.toolname}
+                </div>
             </div>
             {progressData.statuslines && progressData.statuslines.length > 0 && (
                 <ToolDesc text={progressData.statuslines} className="text-sm text-gray-400 pl-6 space-y-0.5" />
