@@ -61,6 +61,46 @@ function buildTerminalFontFamilyStack(primaryFontFamily?: string | null, fallbac
     return dedupedFontFamilies.join(", ");
 }
 
+function parseTerminalFontFamilyStack(fontFamilyStack: string): string[] {
+    const fontFamilies: string[] = [];
+    let currentFontFamily = "";
+    let inQuotes = false;
+
+    for (const char of fontFamilyStack) {
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        }
+        if (char === "," && !inQuotes) {
+            const trimmedFontFamily = currentFontFamily.trim();
+            if (trimmedFontFamily.length > 0) {
+                fontFamilies.push(trimmedFontFamily);
+            }
+            currentFontFamily = "";
+            continue;
+        }
+        currentFontFamily += char;
+    }
+
+    const trimmedFontFamily = currentFontFamily.trim();
+    if (trimmedFontFamily.length > 0) {
+        fontFamilies.push(trimmedFontFamily);
+    }
+
+    return fontFamilies;
+}
+
+async function waitForTerminalFonts(fontFamilyStack: string, fontSize: number): Promise<void> {
+    if (typeof document === "undefined" || document.fonts == null) {
+        return;
+    }
+
+    const fontLoadPromises = parseTerminalFontFamilyStack(fontFamilyStack)
+        .filter((fontFamily) => fontFamily.toLowerCase() !== "monospace")
+        .map((fontFamily) => document.fonts.load(`${fontSize}px ${fontFamily}`));
+
+    await Promise.allSettled([document.fonts.ready, ...fontLoadPromises]);
+}
+
 function normalizeTerminalCommand(command: string): string {
     let normalizedCommand = command.trim();
     normalizedCommand = normalizedCommand.replace(/^env\s+/, "");
@@ -411,11 +451,53 @@ const TerminalView = ({ blockId, model }: ViewComponentProps<TermViewModel>) => 
                 : termSettings?.["term:fontfamily"] ?? connFontFamily ?? "DMMono Nerd Font",
             termSettings?.["term:fontfallback"]
         );
-        if (termWrapInst.terminal.options.fontFamily !== nextFontFamily) {
-            termWrapInst.terminal.options.fontFamily = nextFontFamily;
-            termWrapInst.terminal.refresh(0, termWrapInst.terminal.rows - 1);
-        }
-    }, [termWrapInst, useEditorFontForTerminal, nvimFontFamily, termSettings, connFontFamily]);
+        let cancelled = false;
+        let postLoadRefreshTimeoutId: number | null = null;
+
+        const refreshTerminalMetrics = () => {
+            termWrapInst.terminal.clearTextureAtlas();
+            termWrapInst.handleResize();
+            termWrapInst.terminal.refresh(0, Math.max(termWrapInst.terminal.rows - 1, 0));
+            termWrapInst.updateCurrentPromptHighlight();
+        };
+
+        const applyTerminalFontMetrics = async () => {
+            if (termWrapInst.terminal.options.fontFamily !== nextFontFamily) {
+                termWrapInst.terminal.options.fontFamily = nextFontFamily;
+            }
+            if (termWrapInst.terminal.options.fontSize !== termFontSize) {
+                termWrapInst.terminal.options.fontSize = termFontSize;
+            }
+
+            await waitForTerminalFonts(nextFontFamily, termFontSize).catch(() => undefined);
+            if (cancelled) {
+                return;
+            }
+
+            requestAnimationFrame(() => {
+                if (cancelled) {
+                    return;
+                }
+                refreshTerminalMetrics();
+            });
+
+            postLoadRefreshTimeoutId = window.setTimeout(() => {
+                if (cancelled) {
+                    return;
+                }
+                refreshTerminalMetrics();
+            }, 150);
+        };
+
+        void applyTerminalFontMetrics();
+
+        return () => {
+            cancelled = true;
+            if (postLoadRefreshTimeoutId != null) {
+                window.clearTimeout(postLoadRefreshTimeoutId);
+            }
+        };
+    }, [termWrapInst, useEditorFontForTerminal, nvimFontFamily, termSettings, connFontFamily, termFontSize]);
 
     React.useEffect(() => {
         if (termModeRef.current == "vdom" && termMode == "term") {

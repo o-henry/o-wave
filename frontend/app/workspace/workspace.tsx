@@ -197,7 +197,7 @@ const WorkspaceElem = memo(() => {
                         onLayout={workspaceLayoutModel.handleOuterPanelLayout}
                         ref={outerPanelGroupRef}
                     >
-                        <Panel order={0} defaultSize={leftGroupInitialPct} className="overflow-hidden">
+                        <Panel order={0} defaultSize={leftGroupInitialPct} className="min-w-0 overflow-hidden">
                             <PanelGroup
                                 direction="horizontal"
                                 onLayout={workspaceLayoutModel.handleInnerPanelLayout}
@@ -208,7 +208,7 @@ const WorkspaceElem = memo(() => {
                                     collapsible
                                     defaultSize={innerVTabInitialPct}
                                     order={0}
-                                    className="overflow-hidden"
+                                    className="min-w-0 overflow-hidden"
                                 >
                                     <div ref={vtabPanelWrapperRef} className="w-full h-full">
                                     </div>
@@ -219,7 +219,7 @@ const WorkspaceElem = memo(() => {
                                     collapsible
                                     defaultSize={innerAIPanelInitialPct}
                                     order={1}
-                                    className="overflow-hidden"
+                                    className="min-w-0 overflow-hidden"
                                 >
                                     <div
                                         ref={aiPanelWrapperRef}
@@ -231,11 +231,11 @@ const WorkspaceElem = memo(() => {
                             </PanelGroup>
                         </Panel>
                         <PanelResizeHandle className={outerHandleClass} />
-                        <Panel order={1} defaultSize={100 - leftGroupInitialPct}>
+                        <Panel order={1} defaultSize={100 - leftGroupInitialPct} className="min-w-0 overflow-hidden">
                             {tabId === "" ? (
                                 <CenteredDiv>No Active Tab</CenteredDiv>
                             ) : (
-                                <div className="flex flex-row h-full">
+                                <div className="flex h-full w-full min-w-0 flex-row overflow-hidden">
                                     <TabContent key={tabId} tabId={tabId} noTopPadding={showLeftTabBar && isMacOS()} />
                                     {widgetsSidebarVisible && <Widgets />}
                                 </div>
